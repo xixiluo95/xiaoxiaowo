@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { defaultEmotionManifest, loadEmotionManifest, type EmotionVisual } from '../emotion/manifest';
 import type { Emotion } from '../types';
 import type { StagePhase } from '../hooks/useEmotionChat';
+import { CharacterRenderer, prefetchEmotionVideos } from './CharacterRenderer';
 
 let manifestCache: Record<Emotion, EmotionVisual> | null = null;
 
@@ -16,31 +17,11 @@ export function useEmotionManifest() {
       setManifest(m);
     });
   }, []);
+  // 首屏只加载 poster + 当前情绪视频（video 元素自身加载），其余情绪空闲预取
+  useEffect(() => {
+    prefetchEmotionVideos(Object.values(manifest), manifest.calm.video);
+  }, [manifest]);
   return manifest;
-}
-
-// 角色图：素材缺失回退纯色剪影，不白屏
-function CharacterFigure({ visual, enterKey }: { visual: EmotionVisual; enterKey: string }) {
-  const [imgOk, setImgOk] = useState(true);
-  return (
-    <div className={`character enter-${visual.enterFrom}`} key={enterKey}>
-      {imgOk ? (
-        <img
-          src={visual.image}
-          alt=""
-          draggable={false}
-          onError={() => setImgOk(false)}
-          className="character-img"
-        />
-      ) : (
-        <div
-          className="character-fallback"
-          style={{ background: `linear-gradient(160deg, ${visual.color}, ${visual.glow})` }}
-        />
-      )}
-      <div className="character-glow" style={{ background: visual.glow }} />
-    </div>
-  );
 }
 
 function LightDots() {
@@ -73,24 +54,35 @@ export function EmotionStage({
   subtitle,
   speaking,
   thinking,
+  sheetOpen = false,
+  keyboardOpen = false,
 }: {
   phase: StagePhase;
   subtitle: string | null;
   speaking: boolean;
   thinking: boolean;
+  sheetOpen?: boolean;
+  keyboardOpen?: boolean;
 }) {
   const manifest = useEmotionManifest();
   const [enterSeq, setEnterSeq] = useState(0);
+  // 角色常驻：默认平静小人；明确情绪后更新。sensing 期间保留旧角色，不闪空
+  const [lastEmotion, setLastEmotion] = useState<Emotion>('calm');
 
   useEffect(() => {
-    if (phase.kind === 'character') setEnterSeq((n) => n + 1);
+    if (phase.kind === 'character') {
+      setLastEmotion(phase.emotion);
+      setEnterSeq((n) => n + 1);
+    }
   }, [phase]);
 
   const sensingVisual = phase.kind === 'sensing' ? manifest[phase.to] : null;
-  const currentVisual = phase.kind === 'character' ? manifest[phase.emotion] : null;
+  const currentVisual = phase.kind === 'character' ? manifest[phase.emotion] : manifest[lastEmotion];
 
   return (
-    <div className="emotion-stage">
+    <div className={`emotion-stage${sheetOpen ? ' with-sheet' : ''}${keyboardOpen ? ' with-keyboard' : ''}`}>
+      {/* 空舞台场景图：完整氛围画面，按规范不叠手绘边框 */}
+      <img className="stage-scene" src="/assets/scenes/calm-empty-stage.jpg" alt="" aria-hidden />
       <LightDots />
 
       {phase.kind === 'empty' && (
@@ -110,12 +102,12 @@ export function EmotionStage({
         </div>
       )}
 
-      {currentVisual && <CharacterFigure visual={currentVisual} enterKey={`e${enterSeq}`} />}
+      <CharacterRenderer visual={currentVisual} enterKey={`e${enterSeq}`} />
 
       {(subtitle || thinking) && (
-        <div className="subtitle-zone">
+        <div className="subtitle-zone" role="status" aria-live="polite">
           <p className={`subtitle ${speaking ? 'speaking' : ''}`}>
-            {thinking && !subtitle ? '小小我正在想……' : subtitle}
+            {thinking ? '小小我正在想……' : subtitle}
           </p>
         </div>
       )}

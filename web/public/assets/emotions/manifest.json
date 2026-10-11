@@ -1,0 +1,40 @@
+{
+  "calm": {
+    "image": "emotions/calm/idle.png",
+    "video": "emotions/calm/loop.mp4",
+    "poster": "emotions/calm/poster.jpg",
+    "color": "#F2EEE6",
+    "glow": "#FFF8E7",
+    "enterFrom": "fade"
+  },
+  "joy": {
+    "image": "emotions/joy/idle.png",
+    "video": "emotions/joy/loop.mp4",
+    "poster": "emotions/joy/poster.jpg",
+    "color": "#FFC94D",
+    "glow": "#FFE9A8",
+    "enterFrom": "float"
+  },
+  "anger": {
+    "image": "emotions/anger/idle.png",
+    "video": "emotions/anger/loop.mp4",
+    "poster": "emotions/anger/poster.jpg",
+    "color": "#E8442E",
+    "glow": "#FF8A5C",
+    "enterFrom": "left"
+  },
+  "sadness": {
+    "image": "emotions/sadness/idle.png",
+    "video": "emotions/sadness/loop.mp4",
+    "poster": "emotions/sadness/poster.jpg",
+    "color": "#4A7FD4",
+    "glow": "#9CC4F5",
+    "enterFrom": "ground"
+  },
+  "fear": {
+    "image": "emotions/fear/idle.png",
+    "color": "#8B5CF6",
+    "glow": "#C4B0FA",
+    "enterFrom": "shadow"
+  }
+}

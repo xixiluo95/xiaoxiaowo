@@ -1,0 +1,1348 @@
+:root {
+  /* 儿童端主题变量：与 src/ui/tokens.ts 的 defaultTokens 一致；
+     applyTheme(uiOverrides.theme) 启动时会覆盖同名变量 */
+  --xxw-bg: #FBF8F2;
+  --xxw-ink: #5B4A3F;
+  --xxw-card: #FFFFFF;
+  --xxw-muted: #9A938A;
+  --xxw-line: #D8D2C4;
+  --xxw-emotion-joy: #FFC94D;
+  --xxw-emotion-sadness: #4A7FD4;
+  --xxw-emotion-anger: #E8442E;
+  --xxw-emotion-fear: #8B5CF6;
+  --xxw-emotion-calm: #F2EEE6;
+  --xxw-emotion-joy-glow: #FFE9A8;
+  --xxw-emotion-sadness-glow: #9CC4F5;
+  --xxw-emotion-anger-glow: #FF8A5C;
+  --xxw-emotion-fear-glow: #C4B0FA;
+  --xxw-emotion-calm-glow: #FFF8E7;
+  --xxw-radius-card: 18px;
+  --xxw-radius-button: 999px;
+  --xxw-radius-input: 999px;
+  --xxw-fs-body: 16px;
+  --xxw-fs-diary: 15px;
+  --xxw-fs-card-title: 18px;
+  --xxw-fs-small: 12px;
+  --xxw-stroke-color: #5B4A3F;
+  --xxw-stroke-width: 2px;
+  /* 家长端既有变量（家长端区段消费，勿删） */
+  --ink: #5B4A3F;
+  --paper: #FBF8F2;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'PingFang SC', 'HarmonyOS Sans', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color: var(--xxw-ink);
+  background: var(--xxw-bg);
+  overscroll-behavior: none;
+  user-select: none;
+}
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ————— 统一按钮（src/ui/ActionButton） ————— */
+.xxw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: transform 0.12s ease, opacity 0.12s ease, background 0.15s ease;
+}
+
+.xxw-btn:active {
+  transform: scale(0.96);
+}
+
+.xxw-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.xxw-btn--hold {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.xxw-btn--round {
+  flex-direction: column;
+}
+
+.xxw-btn-icon {
+  display: inline-flex;
+}
+
+.xxw-btn--recording {
+  animation: xxwRecRipple 1.2s ease-out infinite;
+}
+
+@keyframes xxwRecRipple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(232, 68, 46, 0.4), 0 0 0 0 rgba(232, 68, 46, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 20px rgba(232, 68, 46, 0), 0 0 0 40px rgba(232, 68, 46, 0);
+  }
+}
+
+/* ————— 通用顶栏 ————— */
+.sub-topbar,
+.child-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 6px;
+  z-index: 20;
+}
+
+.child-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.sub-title {
+  font-size: 17px;
+  margin: 0;
+}
+
+.sub-title-wrap {
+  text-align: center;
+}
+
+.sub-title-date {
+  margin: 2px 0 0;
+  font-size: var(--xxw-fs-small);
+  color: var(--xxw-muted);
+}
+
+.topbar-icon {
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.parent-calendar .topbar-btn {
+  background: rgba(91, 74, 63, 0.08);
+  color: var(--ink);
+}
+
+.topbar-spacer {
+  width: 42px;
+}
+
+/* ————— 儿童端情绪舞台（浅色绘本风） ————— */
+.child-home {
+  background: var(--xxw-bg);
+  color: var(--xxw-ink);
+}
+
+.emotion-stage {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 空舞台场景图：完整氛围画面，按规范不叠手绘边框 */
+.stage-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.light-dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.light-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--xxw-emotion-joy);
+  filter: blur(1.5px);
+  animation: dotFloat 4.6s ease-in-out infinite;
+}
+
+@keyframes dotFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(-14px) scale(1.25);
+    opacity: 0.65;
+  }
+}
+
+.stage-prompt {
+  position: absolute;
+  top: 14%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.stage-prompt-text {
+  font-size: 21px;
+  letter-spacing: 2px;
+  color: var(--xxw-ink);
+  animation: softPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes softPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 感应光效层：0.8–1.5s 后由父级切换到角色 */
+.sensing-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sensing-glow {
+  width: 62vmin;
+  height: 62vmin;
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: sensePulse 0.9s ease-in-out infinite;
+}
+
+@keyframes sensePulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* 整幅舞台视频（人物+场景预合成，720×1280）：铺满舞台，盖在静态场景图上，不叠第二层背景 */
+.stage-video {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.video-layer {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.65s ease;
+}
+
+.video-layer.off {
+  opacity: 0;
+}
+
+.video-layer video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  /* loop 接缝淡化：双 video 轮换时 0.3s 交叉 */
+  transition: opacity 0.3s linear;
+}
+
+.video-layer video.front {
+  opacity: 1;
+}
+
+/* 角色：约占屏高 40–45% */
+.character {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  height: 42dvh;
+  /* 显式宽度：aspect-ratio 会被 grid fit-content 的图片固有宽度覆盖 */
+  width: calc(42dvh * 9 / 16);
+  transform: translateX(-50%);
+  display: grid;
+  place-items: end center;
+  animation-fill-mode: both;
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.character-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 28px rgba(91, 74, 63, 0.25));
+  z-index: 2;
+}
+
+.character-fallback {
+  height: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 46% 54% 52% 48% / 58% 56% 44% 42%;
+  box-shadow: 0 12px 40px rgba(91, 74, 63, 0.25);
+  z-index: 2;
+}
+
+.character-glow {
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  filter: blur(30px);
+  opacity: 0.55;
+  z-index: 1;
+  animation: softPulse 3s ease-in-out infinite;
+}
+
+/* 五情绪入场 CSS 过渡 */
+.character.enter-left {
+  animation-name: enterLeft;
+}
+.character.enter-ground {
+  animation-name: enterGround;
+}
+.character.enter-shadow {
+  animation-name: enterShadow;
+}
+.character.enter-float {
+  animation-name: enterFloat;
+}
+.character.enter-fade {
+  animation-name: enterFade;
+}
+
+@keyframes enterLeft {
+  from {
+    transform: translateX(-190%) rotate(-6deg);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes enterGround {
+  from {
+    transform: translateX(-50%) translateY(70%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes enterShadow {
+  from {
+    transform: translateX(-50%) scale(0.7);
+    opacity: 0;
+    filter: brightness(0.4) blur(6px);
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+    filter: brightness(1) blur(0);
+  }
+}
+
+@keyframes enterFloat {
+  0% {
+    transform: translateX(-50%) translateY(48px) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-50%) translateY(-10px) scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes enterFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 角色压缩态：聊天面板展开 / 软键盘打开时，角色缩到顶部可视条常驻可见，不遮文字与输入 */
+.emotion-stage.with-sheet .character,
+.emotion-stage.with-keyboard .character {
+  height: 20dvh;
+  width: calc(20dvh * 9 / 16);
+  bottom: auto;
+  top: calc(env(safe-area-inset-top, 0px) + 48px);
+}
+
+/* 舞台视频压缩态：收成顶部横条，object-position 对准角色头胸部，角色常驻可见 */
+.emotion-stage.with-sheet .stage-video,
+.emotion-stage.with-keyboard .stage-video {
+  inset: auto;
+  top: calc(env(safe-area-inset-top, 0px) + 52px);
+  left: 0;
+  right: 0;
+  height: 30dvh;
+}
+
+/* 面板态收得更矮：底边避让聊天面板顶边（.chat-sheet top:30%），不得盖住/被盖住 */
+.emotion-stage.with-sheet .stage-video {
+  height: calc(30% - 60px);
+}
+
+.emotion-stage.with-sheet .stage-video video,
+.emotion-stage.with-keyboard .stage-video video {
+  object-position: center 32%;
+}
+
+/* 视频压缩态比静态角色条高，键盘展开时字幕移到视频条下方 */
+.emotion-stage.with-keyboard:has(.stage-video) .subtitle-zone {
+  top: calc(env(safe-area-inset-top, 0px) + 58px + 30dvh);
+}
+
+.emotion-stage.with-sheet .stage-prompt,
+.emotion-stage.with-keyboard .stage-prompt {
+  display: none;
+}
+
+/* 面板展开时字幕已由文字流承载；键盘展开时字幕移到紧凑角色下方 */
+.emotion-stage.with-sheet .subtitle-zone {
+  display: none;
+}
+
+.emotion-stage.with-keyboard .subtitle-zone {
+  bottom: auto;
+  top: calc(env(safe-area-inset-top, 0px) + 54px + 20dvh);
+  left: 6%;
+  right: 6%;
+}
+
+/* 字幕区：压在角色脚下（角色下半身以下），避让上半身 */
+.subtitle-zone {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: calc(14% - 56px);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.subtitle {
+  margin: 0;
+  padding: 10px 18px;
+  max-width: 100%;
+  border-radius: var(--xxw-radius-card);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1.5px solid rgba(91, 74, 63, 0.14);
+  box-shadow: 0 6px 18px rgba(91, 74, 63, 0.12);
+  color: var(--xxw-ink);
+  font-size: var(--xxw-fs-body);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.subtitle.speaking {
+  box-shadow: 0 0 0 1.5px rgba(91, 74, 63, 0.3), 0 6px 18px rgba(91, 74, 63, 0.12);
+}
+
+/* 孩子语音识别回显：字幕条下方浅灰斜体 */
+.echo-chip {
+  position: absolute;
+  bottom: calc(14% - 104px);
+  left: 8%;
+  right: 8%;
+  text-align: center;
+  color: var(--xxw-muted);
+  font-size: 13.5px;
+  font-style: italic;
+  z-index: 25;
+  animation: echoIn 0.25s ease-out;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+@keyframes echoIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.tts-fallback-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 62px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--xxw-muted);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(91, 74, 63, 0.12);
+  padding: 4px 12px;
+  border-radius: 999px;
+  z-index: 25;
+}
+
+.chat-error {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 100px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff4e6;
+  color: var(--xxw-ink);
+  z-index: 26;
+}
+
+.swipe-hint {
+  text-align: center;
+  font-size: var(--xxw-fs-small);
+  color: var(--xxw-muted);
+  padding-bottom: 4px;
+}
+
+/* ————— 底部输入栏 ————— */
+.voice-bar {
+  padding: 8px 14px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  z-index: 22;
+}
+
+.voice-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voice-bar-row .xxw-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.voice-bar.voice-on {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.voice-bar.voice-on .voice-bar-row {
+  position: relative;
+  justify-content: center;
+  min-height: 150px;
+}
+
+.voice-bar.voice-on .voice-mode-btn {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.voice-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--xxw-muted);
+}
+
+.voice-hint.listening {
+  color: var(--xxw-ink);
+  font-weight: 500;
+}
+
+.voice-mode-icon {
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+}
+
+/* 按住说话大圆钮（按钮面为美术图 voice-mic.png，尺寸/配色可被 button 配置覆盖） */
+.xxw-btn--voice-hold-talk {
+  gap: 2px;
+  font-weight: 600;
+}
+
+.xxw-btn--voice-hold-talk:active {
+  transform: scale(0.94);
+}
+
+.hold-talk-mic {
+  order: -1;
+  display: grid;
+  place-items: center;
+}
+
+.xxw-btn--voice-hold-talk.xxw-btn--recording .btn-art--hold {
+  filter: drop-shadow(0 0 12px rgba(232, 68, 46, 0.75)) saturate(1.25);
+}
+
+/* ————— 美术图按钮面（SHIY-380：ui-补全素材接入） ————— */
+.btn-art {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-art--send {
+  width: 46px;
+  height: auto;
+}
+
+.btn-art--mode {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
+.btn-art--hold {
+  width: 92px;
+  height: auto;
+}
+
+.btn-art-fallback {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--xxw-ink);
+}
+
+.xxw-btn:disabled .btn-art {
+  filter: grayscale(0.65);
+}
+
+/* 文字输入底板（chat-input-base.png，九宫格拉伸适配任意宽度；加载失败回退卡片底色） */
+.voice-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  display: flex;
+  align-items: stretch;
+  background: var(--xxw-card);
+  border: 1.5px solid var(--xxw-line);
+  border-radius: 23px;
+}
+
+.voice-input-bg {
+  position: absolute;
+  inset: 0;
+  border-style: solid;
+  border-color: transparent; /* 图片加载失败时不露纯色边，露出容器兜底底色 */
+  border-width: 23px 30px;
+  border-image: url('/assets/ui/chat-input-base.png') 70 110 fill stretch;
+  pointer-events: none;
+}
+
+/* 美术边框已加载时隐藏容器描边，避免与美术边框叠成"双线框"（加载失败保持描边兜底） */
+.voice-input-wrap.art-ok {
+  border-color: transparent;
+}
+
+.voice-input-wrap:focus-within {
+  box-shadow: 0 0 0 3px rgba(255, 201, 77, 0.45);
+}
+
+.voice-input {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  border: none;
+  border-radius: 23px;
+  padding: 0 30px;
+  font-size: var(--xxw-fs-body);
+  background: transparent;
+  color: var(--xxw-ink);
+  outline: none;
+}
+
+.voice-input::placeholder {
+  color: var(--xxw-muted);
+}
+
+/* ————— 聊天文字流面板（09 文字流：浅色 + 手绘气泡） ————— */
+/* 底部面板形态：顶部 30% 保留紧凑角色区，角色在面板展开时仍可见 */
+.chat-sheet {
+  position: absolute;
+  top: 30%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--xxw-bg);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  animation: sheetUp 0.28s ease-out;
+  border-radius: 24px 24px 0 0;
+  border-top: 1.5px solid var(--xxw-line);
+  box-shadow: 0 -8px 30px rgba(91, 74, 63, 0.16);
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(24%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.chat-sheet-handle {
+  padding: 14px 0 6px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+}
+
+.chat-sheet-grip {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--xxw-line);
+}
+
+.chat-sheet-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+
+.chat-empty {
+  text-align: center;
+  color: var(--xxw-muted);
+  margin-top: 40px;
+}
+
+.chat-row {
+  display: flex;
+  margin: 10px 0;
+}
+
+.chat-row.child {
+  justify-content: flex-end;
+}
+
+.chat-bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  font-size: var(--xxw-fs-diary);
+  line-height: 1.65;
+  background: var(--xxw-card);
+  color: var(--xxw-ink);
+  border: 1.5px solid var(--xxw-stroke-color);
+  border-radius: 18px 18px 18px 6px;
+  white-space: pre-wrap;
+}
+
+.chat-row.child .chat-bubble {
+  background: var(--xxw-emotion-joy-glow);
+  border-radius: 18px 18px 6px 18px;
+}
+
+/* ————— 首次介绍 ————— */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--xxw-bg);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.intro-card.rough-card {
+  max-width: 420px;
+  width: 100%;
+  margin: 0;
+}
+
+.intro-title {
+  font-size: 22px;
+  text-align: center;
+  margin: 0;
+  color: var(--xxw-ink);
+}
+
+.intro-body {
+  margin: 20px 4px;
+  font-size: 15.5px;
+  line-height: 1.9;
+  color: var(--xxw-ink);
+}
+
+.intro-body strong {
+  color: #c98f1b;
+}
+
+.intro-actions {
+  display: grid;
+  gap: 10px;
+}
+
+/* ————— 手绘卡片 ————— */
+.rough-card {
+  position: relative;
+  margin: 12px 16px;
+}
+
+.rough-card-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.rough-card-body {
+  position: relative;
+  padding: 16px;
+}
+
+.mood-cloud {
+  display: inline-block;
+}
+
+/* ————— 日记页 ————— */
+.diary-page,
+.calendar-page,
+.me-page,
+.parent-calendar {
+  background: var(--xxw-bg);
+}
+
+.diary-main {
+  padding-bottom: 40px;
+  overflow-y: auto;
+}
+
+.diary-mood-line {
+  margin: 14px 18px 4px;
+  font-size: var(--xxw-fs-diary);
+}
+
+.mood-unconfirmed {
+  color: var(--xxw-muted);
+}
+
+.stats-bar {
+  display: flex;
+  height: 10px;
+  margin: 10px 18px 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--xxw-line);
+}
+
+.stats-seg {
+  min-width: 6px;
+}
+
+.stats-empty {
+  margin: 10px 18px;
+  color: var(--xxw-muted);
+  font-size: 13px;
+}
+
+.block-badge {
+  position: absolute;
+  top: -9px;
+  right: 14px;
+  background: var(--xxw-emotion-joy);
+  color: var(--xxw-ink);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  z-index: 2;
+}
+
+.block-text {
+  margin: 0;
+  font-size: var(--xxw-fs-diary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+/* 孩子改过的块：改动文字波浪下划线 */
+.block-text-edited {
+  text-decoration: underline wavy var(--xxw-emotion-joy);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+
+.block-textarea {
+  width: 100%;
+  border: 1.5px dashed #b8ad97;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: var(--xxw-fs-diary);
+  font-family: inherit;
+  background: var(--xxw-card);
+  color: var(--xxw-ink);
+  resize: vertical;
+}
+
+.block-actions,
+.block-edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.diary-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 18px;
+}
+
+.diary-share-row {
+  display: flex;
+  justify-content: center;
+  margin: -6px 0 10px;
+}
+
+.shared-mark {
+  color: #6d8f5a;
+  font-size: 14px;
+}
+
+.empty-state {
+  margin: 60px 30px;
+  text-align: center;
+  color: var(--xxw-muted);
+  font-size: var(--xxw-fs-diary);
+  line-height: 1.8;
+}
+
+/* ————— 心情日历 ————— */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 8px 0 14px;
+}
+
+.calendar-month {
+  font-size: 17px;
+  font-weight: 600;
+  min-width: 110px;
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 0 16px;
+}
+
+.calendar-week {
+  text-align: center;
+  font-size: var(--xxw-fs-small);
+  color: var(--xxw-muted);
+  padding: 6px 0;
+}
+
+/* 日期格：白底卡片 + 心形承色 */
+.xxw-btn--calendar-day-cell {
+  aspect-ratio: 0.82;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 500;
+  box-shadow: 0 1px 0 rgba(91, 74, 63, 0.08);
+}
+
+.calendar-cell.today {
+  outline: 2px solid var(--xxw-emotion-joy);
+  outline-offset: -2px;
+}
+
+.calendar-cell.has-diary {
+  background: var(--xxw-emotion-calm-glow) !important;
+}
+
+.calendar-cell.future {
+  background: rgba(91, 74, 63, 0.05) !important;
+  color: var(--xxw-muted) !important;
+}
+
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 18px 16px 0;
+  padding: 10px 8px;
+  border: 1.5px dashed var(--xxw-line);
+  border-radius: var(--xxw-radius-card);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--xxw-fs-small);
+  color: var(--xxw-ink);
+}
+
+.calendar-note {
+  margin: 14px 20px;
+  font-size: 12.5px;
+  color: var(--xxw-muted);
+  line-height: 1.7;
+}
+
+/* ————— 我的 ————— */
+.me-main {
+  padding-bottom: 30px;
+  overflow-y: auto;
+}
+
+.me-hero {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+}
+
+.me-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+  background: var(--xxw-emotion-calm-glow);
+  border: 2px solid var(--xxw-stroke-color);
+}
+
+.me-title {
+  margin: 0;
+  font-size: 24px;
+  color: var(--xxw-ink);
+}
+
+.me-entries {
+  display: grid;
+  gap: 12px;
+  padding: 6px 18px 0;
+}
+
+/* 条目卡片：图标 / 标题+描述 / 右箭头 */
+.xxw-btn.me-entry {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  text-align: left;
+  box-shadow: 0 2px 0 rgba(91, 74, 63, 0.1);
+}
+
+.me-entry .xxw-btn-label {
+  grid-row: 1;
+  grid-column: 2;
+  font-weight: 600;
+}
+
+.me-entry-icon {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  font-size: 26px;
+  display: grid;
+  place-items: center;
+  color: var(--xxw-emotion-joy);
+}
+
+.me-entry-text {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+.me-entry-desc {
+  font-size: 12.5px;
+  color: var(--xxw-muted);
+}
+
+.me-entry-arrow {
+  grid-row: 1 / 3;
+  grid-column: 3;
+  color: var(--xxw-muted);
+  display: grid;
+  place-items: center;
+}
+
+.me-parent-demo {
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.me-vanish {
+  text-align: center;
+  color: var(--xxw-muted);
+  font-size: 13px;
+  margin: 26px 0 6px;
+}
+
+.me-session {
+  text-align: center;
+  color: #b3a88f;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* ————— 家长端 ————— */
+.parent-home {
+  background: linear-gradient(180deg, #fdf9ef 0%, var(--paper) 60%);
+}
+
+.parent-main {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.parent-heart-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.parent-heart-label {
+  font-size: 15px;
+  color: #7d7466;
+  margin: 0;
+}
+
+.mood-heart {
+  filter: drop-shadow(0 8px 20px rgba(74, 64, 54, 0.18));
+}
+
+.parent-heart-corner {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  z-index: 5;
+}
+
+.parent-center-stack {
+  padding: 84px 4px 30px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.parent-center-stack.centered {
+  justify-content: center;
+}
+
+.parent-center-stack.centered .rough-card {
+  flex-shrink: 0;
+}
+
+.guidance-card h3,
+.shared-diary-card h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.guidance-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.guidance-level {
+  font-size: 11px;
+  font-weight: 500;
+  color: #b3543f;
+  border: 1px solid #b3543f;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.guidance-brief {
+  font-size: 14px;
+  color: #7d7466;
+  line-height: 1.7;
+  border-left: 3px solid #e3d6bd;
+  padding-left: 10px;
+}
+
+.guidance-card h4 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.guidance-card ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #5c5347;
+}
+
+.guidance-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #5c5347;
+}
+
+.shared-diary-text {
+  font-size: 15px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.shared-diary-note {
+  font-size: 12px;
+  color: #9a938a;
+  margin: 10px 0 0;
+}
+
+.parent-day-main {
+  padding-bottom: 30px;
+}
+
+.parent-day-mood {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 22px 6px;
+  font-size: 14px;
+  color: #7d7466;
+}
+
+.parent-footer {
+  padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + 14px);
+  display: grid;
+  place-items: center;
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: #9a938a;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+/* ————— 家长端日历 ————— */
+.parent-calendar .calendar-cell {
+  position: relative;
+}
+
+.parent-calendar .calendar-cell.selected {
+  outline: 2px solid var(--ink);
+}
+
+.calendar-marks {
+  display: flex;
+  gap: 4px;
+  height: 6px;
+}
+
+.calendar-marks .mark {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.calendar-marks .mark-diary {
+  background: #e8a13c;
+}
+
+.calendar-marks .mark-guidance {
+  background: #b3543f;
+}
+
+.parent-day-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 4px;
+}
+
+.parent-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: #5c5347;
+}
+
+.parent-stat-chip i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(74, 64, 54, 0.35);
+}
