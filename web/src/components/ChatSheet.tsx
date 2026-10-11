@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { ChatMessage } from '../types';
 import { defaultEmotionManifest } from '../emotion/manifest';
+import { ActionButton } from '../ui/ActionButton';
 
 // 上滑打开的本轮聊天文字流；下滑回舞台（手势由父级统一处理）
 export function ChatSheet({ messages, onClose }: { messages: ChatMessage[]; onClose: () => void }) {
@@ -13,9 +14,9 @@ export function ChatSheet({ messages, onClose }: { messages: ChatMessage[]; onCl
 
   return (
     <div className="chat-sheet">
-      <div className="chat-sheet-handle" onClick={onClose}>
+      <div className="chat-sheet-handle">
         <span className="chat-sheet-grip" />
-        <span className="chat-sheet-hint">下滑回到舞台</span>
+        <ActionButton actionId="chat.close-sheet" onPress={onClose} />
       </div>
       <div className="chat-sheet-list" ref={listRef}>
         {messages.length === 0 && <p className="chat-empty">还没有聊天内容，和小我说点什么吧</p>}

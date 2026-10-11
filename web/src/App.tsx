@@ -1,33 +1,25 @@
-import { useEffect, useState } from "react";
-import { Button, Space, Tag } from "antd-mobile";
-
-const emotions = ["calm", "joy", "anger", "sadness", "fear"] as const;
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { resolvePage } from './ui/registry';
 
 export default function App() {
-  const [health, setHealth] = useState<string>("检查中…");
-
-  useEffect(() => {
-    fetch("/api/health")
-      .then((res) => res.json())
-      .then((data) => setHealth(data.status === "ok" ? "ok" : "异常"))
-      .catch(() => setHealth("后端未连接（可独立运行）"));
-  }, []);
+  const ChildHome = resolvePage('child.home');
+  const DiaryPage = resolvePage('child.diary');
+  const CalendarPage = resolvePage('child.calendar');
+  const MePage = resolvePage('child.me');
+  const ParentHome = resolvePage('parent.home');
+  const ParentCalendarPage = resolvePage('parent.calendar');
 
   return (
-    <div style={{ padding: 24, textAlign: "center" }}>
-      <h1>小小我 · AI 情绪剧场</h1>
-      <p>工程脚手架占位首页</p>
-      <Space wrap>
-        {emotions.map((e) => (
-          <Tag key={e} color="primary" fill="outline">
-            {e}
-          </Tag>
-        ))}
-      </Space>
-      <div style={{ marginTop: 24 }}>
-        <Button color="primary">开始对话（占位）</Button>
-      </div>
-      <p style={{ marginTop: 24, color: "#999" }}>后端健康检查：{health}</p>
-    </div>
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<ChildHome />} />
+        <Route path="/diary" element={<DiaryPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/me" element={<MePage />} />
+        <Route path="/parent" element={<ParentHome />} />
+        <Route path="/parent/calendar" element={<ParentCalendarPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </HashRouter>
   );
 }

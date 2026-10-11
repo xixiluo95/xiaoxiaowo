@@ -28,67 +28,125 @@ export function useSession() {
 // —— TTS 播放器：barge-in 核心（对照《制作方针》代码思路）——
 export function useTtsPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const urlRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const generationRef = useRef(0);
   const [speaking, setSpeaking] = useState(false);
   const [ttsFailed, setTtsFailed] = useState(false);
+  const [playbackBlocked, setPlaybackBlocked] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const stop = () => {
-    // 第一优先级：本地立即静音
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-    // 取消仍在进行的 TTS 请求
-    abortRef.current?.abort();
-    // generation 递增：之后到达的迟到音频一律丢弃
-    generationRef.current += 1;
-    setSpeaking(false);
+  const getAudio = () => (audioRef.current ??= new Audio());
+
+  // 在发送/按住说话的用户手势内激活同一个播放器，兼容移动端播放策略。
+  const unlock = () => {
+    const audio = getAudio();
+    if (audio.src) return;
+    const bytes = new Uint8Array(46);
+    const view = new DataView(bytes.buffer);
+    const write = (at: number, text: string) => [...text].forEach((c, i) => bytes[at + i] = c.charCodeAt(0));
+    write(0, 'RIFF'); view.setUint32(4, 38, true); write(8, 'WAVE'); write(12, 'fmt ');
+    view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+    view.setUint32(24, 8000, true); view.setUint32(28, 16000, true);
+    view.setUint16(32, 2, true); view.setUint16(34, 16, true); write(36, 'data'); view.setUint32(40, 2, true);
+    audio.src = 'data:audio/wav;base64,' + btoa(String.fromCharCode(...bytes));
+    void audio.play().catch(() => { /* 真正回复被拦截时提供显式播放按钮 */ });
   };
 
-  const speak = async (text: string, fetchAudio: (signal: AbortSignal) => Promise<Blob>) => {
-    stop();
+  const stop = () => {
+    generationRef.current += 1;
+    abortRef.current?.abort();
+    const audio = audioRef.current;
+    if (audio) {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+    }
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    urlRef.current = null;
+    setSpeaking(false);
+    setLoading(false);
+    setPlaybackBlocked(false);
     setTtsFailed(false);
+  };
+
+  const play = async (gen: number) => {
+    const audio = getAudio();
+    try {
+      await audio.play();
+      if (gen !== generationRef.current) return;
+      setSpeaking(true);
+      setPlaybackBlocked(false);
+      setTtsFailed(false);
+    } catch (error) {
+      if (gen !== generationRef.current) return;
+      setSpeaking(false);
+      if ((error as Error).name === 'NotAllowedError') setPlaybackBlocked(true);
+      else setTtsFailed(true);
+    }
+  };
+
+  const replay = () => {
+    if (!urlRef.current) return false;
+    const audio = getAudio();
+    audio.currentTime = 0;
+    void play(generationRef.current); // 同步进入 play()，保留点击手势
+    return true;
+  };
+
+  const speak = async (_text: string, fetchAudio: (signal: AbortSignal) => Promise<Blob>) => {
+    // 保留发送时已激活的播放器；只替换旧音频。
+    generationRef.current += 1;
+    abortRef.current?.abort();
+    const audio = getAudio();
+    audio.pause();
+    audio.onended = null;
+    audio.onerror = null;
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    urlRef.current = null;
+    setSpeaking(false);
+    setTtsFailed(false);
+    setPlaybackBlocked(false);
+    setLoading(true);
     const gen = generationRef.current;
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    const timeout = setTimeout(() => ctrl.abort(), 45000);
     try {
       const blob = await fetchAudio(ctrl.signal);
-      if (gen !== generationRef.current) return; // 已被打断，丢弃
-      const url = URL.createObjectURL(blob);
-      const audio = audioRef.current ?? new Audio();
-      audioRef.current = audio;
-      audio.src = url;
-      audio.onended = () => {
-        setSpeaking(false);
-        URL.revokeObjectURL(url);
-      };
+      if (gen !== generationRef.current) return;
+      if (!blob.size) throw new Error('empty_audio');
+      urlRef.current = URL.createObjectURL(blob);
+      audio.src = urlRef.current;
+      audio.onended = () => { if (gen === generationRef.current) setSpeaking(false); };
       audio.onerror = () => {
+        if (gen !== generationRef.current) return;
         setSpeaking(false);
         setTtsFailed(true);
-        URL.revokeObjectURL(url);
+        if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+        urlRef.current = null;
       };
-      setSpeaking(true);
-      await audio.play();
-    } catch (e) {
-      if ((e as Error).name === 'AbortError') return;
+      await play(gen);
+    } catch {
       if (gen !== generationRef.current) return;
-      // TTS 失败：保留字幕文本，不阻断对话
       setTtsFailed(true);
       setSpeaking(false);
+    } finally {
+      clearTimeout(timeout);
+      if (gen === generationRef.current) setLoading(false);
     }
   };
 
-  useEffect(
-    () => () => {
-      abortRef.current?.abort();
-      audioRef.current?.pause();
-    },
-    [],
-  );
+  useEffect(() => () => {
+    generationRef.current += 1;
+    abortRef.current?.abort();
+    audioRef.current?.pause();
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+  }, []);
 
-  return { speaking, ttsFailed, speak, stop };
+  return { speaking, ttsFailed, playbackBlocked, loading, speak, stop, unlock, replay };
 }
 
 // —— 录音：MediaRecorder 按住说话、松开发送 ——

@@ -1,6 +1,6 @@
 import { useId } from 'react';
-import type { Emotion } from '../../types';
-import { defaultEmotionManifest } from '../../emotion/manifest';
+import type { Emotion } from '../types';
+import { defaultEmotionManifest } from '../emotion/manifest';
 
 // 心情心脏：未确认一律白色；并列最高情绪用多色渐变
 export function MoodHeart({
@@ -45,7 +45,7 @@ export function MoodHeart({
               ? defaultEmotionManifest[list[0]].color
               : `url(#${gid})`
         }
-        stroke="#4a4036"
+        style={{ stroke: 'var(--xxw-ink, #5B4A3F)' }}
         strokeWidth="2.4"
         strokeLinejoin="round"
       />

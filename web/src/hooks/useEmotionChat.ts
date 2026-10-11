@@ -23,6 +23,7 @@ export function useEmotionChat() {
   const recorder = useRecorder();
   const sensingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const echoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sendingRef = useRef(false);
 
   const applyEmotion = useCallback((emo: EmotionDecision) => {
     if (emo.ambiguous) return; // 情绪含糊：保持当前角色继续探索
@@ -48,16 +49,22 @@ export function useEmotionChat() {
   const sendText = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || thinking) return;
+      if (!trimmed || sendingRef.current) return false;
+      sendingRef.current = true;
+      tts.stop();
+      tts.unlock();
       setError(null);
       setMessages((ms) => [...ms, { id: nextId(), role: 'child', text: trimmed, at: Date.now() }]);
       setThinking(true);
       try {
         const res = await sendChat(trimmed);
         handleReply(res.reply, res.emotion);
+        return true;
       } catch {
-        setError('小小我刚刚走神了，再试一次好吗？');
+        setError('这次没有收到回复，文字已保留，请点击发送重试。');
+        return false;
       } finally {
+        sendingRef.current = false;
         setThinking(false);
       }
     },
@@ -67,6 +74,7 @@ export function useEmotionChat() {
   // —— 语音：按下即 barge-in（静音旧声音 + abort TTS + 立刻采集）——
   const beginVoice = useCallback(async () => {
     tts.stop(); // 打断立即本地静音、丢弃迟到音频
+    tts.unlock();
     const ok = await recorder.start();
     if (!ok) {
       setError('麦克风打不开，先用打字聊聊吧');
@@ -106,6 +114,14 @@ export function useEmotionChat() {
     clearError,
     speaking: tts.speaking,
     ttsFailed: tts.ttsFailed,
+    playbackBlocked: tts.playbackBlocked,
+    audioLoading: tts.loading,
+    replay: () => {
+      tts.unlock();
+      if (tts.replay()) return;
+      const last = [...messages].reverse().find((m) => m.role === 'ai');
+      if (last) void tts.speak(last.text, (signal) => synthesize(last.text, signal));
+    },
     recording: recorder.recording,
     recorderSupported: recorder.supported,
     sendText,

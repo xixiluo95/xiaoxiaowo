@@ -2,12 +2,16 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import rough from 'roughjs';
 import { annotate } from 'rough-notation';
 
-// 手绘皮肤参数（丹青规范未就绪前的默认值，规范落地后在这里统一替换）
+// 手绘皮肤参数（照丹青 skin-handdrawn-spec：暖灰棕描边、seed 固定 42 防重绘跳动）
 export const SKIN = {
-  stroke: '#4a4036',
-  strokeWidth: 1.6,
-  roughness: 1.7,
-  bowing: 2.2,
+  stroke: '#5B4A3F',
+  strokeWidth: 2,
+  roughness: 1.4,
+  bowing: 2.5,
+  fillWeight: 1.2,
+  hachureGap: 6,
+  hachureAngle: -41,
+  seed: 42,
   fillStyle: 'solid' as const,
 };
 
@@ -46,13 +50,18 @@ export function RoughCard({
     if (!svg || size.w < 4 || size.h < 4) return;
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     const rc = rough.svg(svg);
+    // 卡片边框（规范 §卡片）：长边弓形更大更像手画
     const node = rc.rectangle(padding / 2, padding / 2, size.w - padding, size.h - padding, {
       stroke: color,
       strokeWidth: SKIN.strokeWidth,
-      roughness: SKIN.roughness,
-      bowing: SKIN.bowing,
+      roughness: 1.2,
+      bowing: 3.5,
       fill,
       fillStyle: SKIN.fillStyle,
+      fillWeight: SKIN.fillWeight,
+      hachureGap: SKIN.hachureGap,
+      hachureAngle: SKIN.hachureAngle,
+      seed: SKIN.seed,
     });
     svg.appendChild(node);
   }, [size, color, fill, padding]);
@@ -82,9 +91,11 @@ export function EmotionHighlight({
     const annotation = annotate(el, {
       type,
       color,
-      strokeWidth: 2,
+      strokeWidth: 2.5,
       padding: type === 'circle' ? 6 : 2,
       animationDuration: 600,
+      multiline: true,
+      iterations: 2,
     });
     const t = setTimeout(() => annotation.show(), 120);
     return () => {

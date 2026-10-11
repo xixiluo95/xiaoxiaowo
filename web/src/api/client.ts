@@ -1,8 +1,8 @@
 import type {
   CalendarDay,
   ChatReply,
-  Diary,
   Emotion,
+  ParentCalendarDay,
   ParentDayContent,
   SttResult,
 } from '../types';
@@ -17,31 +17,60 @@ export function getSessionId(): string | null {
 }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, init);
-  if (res.status === 410 || res.status === 404) {
-    const err = new Error('gone') as Error & { code?: string };
-    err.code = 'EXPIRED';
-    throw err;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 45000);
+  try {
+    const res = await fetch(path, { ...init, signal: init?.signal ?? ctrl.signal });
+    if (res.status === 410 || res.status === 404) {
+      // 410=已过期/被删除（EXPIRED）；404=从未存在（NOT_FOUND），两者语义不同，分开抛
+      const err = new Error('gone') as Error & { code?: string };
+      err.code = res.status === 410 ? 'EXPIRED' : 'NOT_FOUND';
+      throw err;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json() as T;
+  } finally {
+    clearTimeout(timer);
   }
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json() as Promise<T>;
 }
 
-export async function ensureSession(): Promise<string> {
-  if (MOCK_ENABLED) return mock.ensureSession();
+let sessionPending: Promise<string> | null = null;
+
+async function resumeOrCreateSession(): Promise<string> {
   const cached = getSessionId();
-  if (cached) return cached;
+  if (cached) {
+    try {
+      await req('/api/session/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: cached }),
+      });
+      return cached;
+    } catch (error) {
+      // 410（已删除）与 404（后端不认识，如后端重置）都视为本地缓存失效，重建会话
+      const code = (error as Error & { code?: string }).code;
+      if (code !== 'EXPIRED' && code !== 'NOT_FOUND') throw error;
+      localStorage.removeItem(SESSION_KEY);
+    }
+  }
   const data = await req<{ sessionId: string }>('/api/session', { method: 'POST' });
   localStorage.setItem(SESSION_KEY, data.sessionId);
   return data.sessionId;
 }
 
+export async function ensureSession(): Promise<string> {
+  if (MOCK_ENABLED) return mock.ensureSession();
+  if (!sessionPending) sessionPending = resumeOrCreateSession().finally(() => { sessionPending = null; });
+  return sessionPending;
+}
+
 export async function sendChat(text: string): Promise<ChatReply> {
   if (MOCK_ENABLED) return mock.sendChat(text);
+  const sessionId = await ensureSession();
   return req<ChatReply>('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionId: getSessionId(), text }),
+    body: JSON.stringify({ sessionId, text }),
   });
 }
 
@@ -70,53 +99,8 @@ export async function synthesize(text: string, signal?: AbortSignal): Promise<Bl
   return res.blob();
 }
 
-// —— 日记 ——
-export async function getDiary(date?: string): Promise<Diary | null> {
-  if (MOCK_ENABLED) return mock.getDiary(date);
-  const q = date ? `?date=${date}` : '';
-  try {
-    return await req<Diary>(`/api/diary${q}${q ? '&' : '?'}sessionId=${getSessionId()}`);
-  } catch (e) {
-    if ((e as Error & { code?: string }).code === 'EXPIRED') return null;
-    throw e;
-  }
-}
-
-export async function updateDiaryBlock(blockId: string, text: string): Promise<Diary> {
-  if (MOCK_ENABLED) return mock.updateDiaryBlock(blockId, text);
-  return req<Diary>(`/api/diary/blocks/${blockId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionId: getSessionId(), text }),
-  });
-}
-
-export async function confirmDiary(date: string): Promise<Diary> {
-  if (MOCK_ENABLED) return mock.confirmDiary(date);
-  return req<Diary>('/api/diary/confirm', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionId: getSessionId(), date }),
-  });
-}
-
-export async function deleteDiaryEvent(eventId: string): Promise<Diary> {
-  if (MOCK_ENABLED) return mock.deleteDiaryEvent(eventId);
-  return req<Diary>(`/api/diary/events/${eventId}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionId: getSessionId() }),
-  });
-}
-
-export async function shareDiary(date: string): Promise<{ ok: boolean }> {
-  if (MOCK_ENABLED) return mock.shareDiary(date);
-  return req('/api/diary/share', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionId: getSessionId(), date }),
-  });
-}
+// —— 日记：已迁至共享层 api/diary.ts（loadDiary/saveBlock/confirmDiary/deleteEvent/shareDiary），
+// 按真实契约适配（嵌套 {date,diary,blocks}、mood/heart 独立接口、DELETE /api/events/{id}）——
 
 export async function getCalendar(month: string): Promise<CalendarDay[]> {
   if (MOCK_ENABLED) return mock.getCalendar(month);
@@ -124,11 +108,34 @@ export async function getCalendar(month: string): Promise<CalendarDay[]> {
 }
 
 // —— 家长端（演示绑定，同一 session）——
+// 单日聚合：心情心脏 + 最新已分享日记快照 + 最新行动指南。
+// 无本地会话时先建会话（新用户应看到空态而非「已删除」）；
+// 已有会话被删返回 410（EXPIRED→过期提示），后端不认识返回 404（NOT_FOUND→重建重试一次）。
 export async function getParentDay(date: string): Promise<ParentDayContent> {
   if (MOCK_ENABLED) return mock.getParentDay(date);
-  return req<ParentDayContent>(
-    `/api/parent/day?date=${date}&sessionId=${getSessionId()}`,
-  );
+  let sessionId = getSessionId() ?? (await ensureSession());
+  try {
+    return await req<ParentDayContent>(`/api/parent/day?date=${date}&sessionId=${sessionId}`);
+  } catch (error) {
+    if ((error as Error & { code?: string }).code !== 'NOT_FOUND') throw error;
+    sessionId = await ensureSession(); // 本地缓存的会话后端不认识：重建后重试一次
+    return req<ParentDayContent>(`/api/parent/day?date=${date}&sessionId=${sessionId}`);
+  }
+}
+
+// 月历概览：逐日心情颜色、已分享日记与行动指南标记
+export async function getParentCalendar(month: string): Promise<ParentCalendarDay[]> {
+  if (MOCK_ENABLED) return mock.getParentCalendar(month);
+  const fetchDays = (sessionId: string) =>
+    req<{ days: ParentCalendarDay[] }>(`/api/parent/calendar?month=${month}&sessionId=${sessionId}`);
+  let sessionId = getSessionId() ?? (await ensureSession());
+  try {
+    return (await fetchDays(sessionId)).days;
+  } catch (error) {
+    if ((error as Error & { code?: string }).code !== 'NOT_FOUND') throw error;
+    sessionId = await ensureSession();
+    return (await fetchDays(sessionId)).days;
+  }
 }
 
 // —— 仅开发环境可见的演示入口 ——
@@ -149,7 +156,7 @@ export function sendCloseBeacon(): void {
   if (MOCK_ENABLED) return;
   try {
     navigator.sendBeacon(
-      '/api/session/close',
+      '/api/session/beacon',
       new Blob([payload], { type: 'application/json' }),
     );
   } catch {

@@ -3,42 +3,45 @@ import { useNavigate } from 'react-router-dom';
 import { Toast } from 'antd-mobile';
 import { LeftOutline, RightOutline } from 'antd-mobile-icons';
 import { getCalendar } from '../api/client';
-import type { CalendarDay } from '../types';
+import type { CalendarDay, Emotion } from '../types';
 import { defaultEmotionManifest } from '../emotion/manifest';
+import { ActionButton } from '../ui/ActionButton';
+import './child/child-pages.css';
 
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
+const LEGEND: Emotion[] = ['anger', 'sadness', 'fear', 'joy', 'calm'];
 
 function monthKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-export function MoodDot({ colors, confirmed, size = 18 }: { colors: string[]; confirmed: boolean; size?: number }) {
-  const background = !confirmed || colors.length === 0
-    ? '#ffffff'
-    : colors.length === 1
-      ? colors[0]
-      : `linear-gradient(135deg, ${colors.join(', ')})`;
-  return (
-    <span
-      className="mood-dot"
-      style={{ width: size, height: size, background }}
-      aria-hidden
-    />
-  );
+function cellBackground(info: CalendarDay | undefined): string | undefined {
+  if (!info || !info.moodConfirmed || !info.colors.length) return undefined;
+  const colors = info.colors.map((e) => defaultEmotionManifest[e].color);
+  // 并列最高：多色渐变
+  return colors.length === 1 ? colors[0] : `linear-gradient(135deg, ${colors.join(', ')})`;
 }
 
 export default function CalendarPage() {
   const navigate = useNavigate();
   const [cursor, setCursor] = useState(() => new Date());
   const [days, setDays] = useState<CalendarDay[]>([]);
+  const [expired, setExpired] = useState(false);
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const load = useCallback(async () => {
+    // 切换月份先清空旧数据，避免上一月内容串页
+    setDays([]);
+    setExpired(false);
     try {
       setDays(await getCalendar(monthKey(cursor)));
-    } catch {
-      setDays([]);
-      Toast.show({ content: '日历加载失败，请稍后再试' });
+    } catch (e) {
+      if ((e as Error & { code?: string })?.code === 'EXPIRED') {
+        // 保留期已过：不显示任何旧内容
+        setExpired(true);
+      } else {
+        Toast.show({ content: '日历加载失败，请稍后再试' });
+      }
     }
   }, [cursor]);
 
@@ -68,29 +71,40 @@ export default function CalendarPage() {
     setCursor(next);
   };
 
-  const openDay = (date: string, hasDiary: boolean) => {
+  const openDay = (date: string) => {
     // 空状态一致：无日记也进入日记页，由日记页展示统一空状态
-    navigate(`/diary?date=${date}${hasDiary ? '' : ''}`);
+    navigate(`/diary?date=${date}`);
   };
+
+  const monthLabel = `${cursor.getFullYear()}年${cursor.getMonth() + 1}月`;
 
   return (
     <div className="page calendar-page">
       <header className="sub-topbar">
-        <button type="button" className="topbar-btn" aria-label="返回" onClick={() => navigate(-1)}>
-          <LeftOutline />
-        </button>
-        <h2 className="sub-title">心情日历</h2>
+        <ActionButton actionId="nav.back" onPress={() => navigate(-1)}>
+          <span className="topbar-icon" aria-hidden>
+            <LeftOutline />
+          </span>
+        </ActionButton>
+        <div className="sub-title-wrap">
+          <h2 className="sub-title">心情日历</h2>
+          <p className="sub-title-date">看看这个月的心情颜色</p>
+        </div>
         <span className="topbar-spacer" />
       </header>
 
       <div className="calendar-header">
-        <button type="button" className="topbar-btn" onClick={() => shiftMonth(-1)} aria-label="上个月">
-          <LeftOutline />
-        </button>
-        <span className="calendar-month">{monthKey(cursor)}</span>
-        <button type="button" className="topbar-btn" onClick={() => shiftMonth(1)} aria-label="下个月">
-          <RightOutline />
-        </button>
+        <ActionButton actionId="calendar.prev-month" onPress={() => shiftMonth(-1)}>
+          <span className="topbar-icon" aria-hidden>
+            <LeftOutline />
+          </span>
+        </ActionButton>
+        <span className="calendar-month">{monthLabel}</span>
+        <ActionButton actionId="calendar.next-month" onPress={() => shiftMonth(1)}>
+          <span className="topbar-icon" aria-hidden>
+            <RightOutline />
+          </span>
+        </ActionButton>
       </div>
 
       <div className="calendar-grid">
@@ -102,26 +116,55 @@ export default function CalendarPage() {
         {cells.map((cell, i) => {
           if (!cell) return <span key={`x${i}`} />;
           const info = byDate.get(cell.date);
+          const future = cell.date > todayStr;
+          const bg = future ? undefined : cellBackground(info);
+          const unconfirmed = !!info && !future && !bg;
+          const cls = [
+            'xwcal-cell',
+            bg ? 'xwcal-colored' : '',
+            unconfirmed ? 'xwcal-unconfirmed' : '',
+            future ? 'xwcal-future' : '',
+            cell.date === todayStr ? 'xwcal-today' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
           return (
-            <button
+            <ActionButton
               key={cell.date}
-              type="button"
-              className={`calendar-cell ${cell.date === todayStr ? 'today' : ''} ${info?.hasDiary ? 'has-diary' : ''}`}
-              onClick={() => openDay(cell.date, !!info?.hasDiary)}
+              actionId="calendar.day-cell"
+              labelOverride=""
+              onPress={() => openDay(cell.date)}
+              className={cls}
             >
-              <span className="calendar-day-num">{cell.day}</span>
-              <MoodDot
-                size={12}
-                confirmed={!!info?.moodConfirmed}
-                colors={(info?.colors ?? []).map((e) => defaultEmotionManifest[e].color)}
-              />
-            </button>
+              {bg && <span className="xwcal-fill" style={{ background: bg }} aria-hidden />}
+              <span className="xwcal-daynum">{cell.day}</span>
+              {info?.hasDiary && !future && <span className="xwcal-diary-dot" aria-hidden />}
+            </ActionButton>
           );
         })}
       </div>
 
+      <div className="calendar-legend" aria-label="情绪颜色图例">
+        {LEGEND.map((e) => (
+          <span key={e} className="legend-item">
+            <span
+              className="xwcal-legend-dot"
+              style={{ background: defaultEmotionManifest[e].color }}
+              aria-hidden
+            />
+            {defaultEmotionManifest[e].label}
+          </span>
+        ))}
+        <span className="legend-item">
+          <span className="xwcal-legend-dot xwcal-legend-dot--white" aria-hidden />
+          待确认
+        </span>
+      </div>
+
       <p className="calendar-note">
-        白色表示还没有确认心情；多种颜色表示当天有几种心情一样多。超过保留时间的日期不会显示内容。
+        {expired
+          ? '内容已经超过保留时间，这里不再显示旧的心情和日记。'
+          : '白色表示还没有确认心情；彩色表示当天的心情颜色，并列最高会显示渐变。超过保留时间的日期不会显示内容。'}
       </p>
     </div>
   );

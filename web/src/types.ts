@@ -51,7 +51,8 @@ export type CalendarDay = {
 
 export type Guidance = {
   id: string;
-  riskLevel: 'medium' | 'high';
+  riskLevel: 'none' | 'medium' | 'high';
+  levelName: string; // 日常陪伴 | 疑似霸凌 | 明确危险
   eventBrief: string; // 简短、不确定措辞
   actions: string[];
   openingLines: string[];
@@ -65,14 +66,24 @@ export type SharedDiarySnapshot = {
   date: string;
   text: string;
   emotionStats: EmotionStat[];
-  sharedAt: number;
+  sharedAt: string; // ISO 时间
 };
 
+// 家长端单日聚合内容（GET /api/parent/day）
 export type ParentDayContent = {
   date: string;
-  mood: { confirmed: boolean; colors: Emotion[] };
+  mood: { confirmed: boolean; colors: Emotion[]; gradient: boolean; stats: EmotionStat[] };
   guidance: Guidance | null;
   sharedDiary: SharedDiarySnapshot | null;
+};
+
+// 家长端月历概览（GET /api/parent/calendar）
+export type ParentCalendarDay = {
+  date: string;
+  moodConfirmed: boolean;
+  colors: Emotion[]; // 并列最高多个 -> 渐变；未确认为空 -> 白
+  hasSharedDiary: boolean;
+  hasGuidance: boolean;
 };
 
 export type SttResult = { text: string; final: boolean; confidence?: number };

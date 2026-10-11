@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { MoodCloud } from './HandDrawn';
+import { RoughCard } from './HandDrawn';
+import { ActionButton } from '../ui/ActionButton';
 
 const SEEN_KEY = 'xxw_intro_seen';
 
@@ -18,10 +19,8 @@ export function useIntroSeen(): [boolean, () => void] {
 export function IntroOverlay({ onDone }: { onDone: () => void }) {
   return (
     <div className="intro-overlay">
-      <div className="intro-card">
-        <MoodCloud>
-          <h1 className="intro-title">你好呀，我是小小我</h1>
-        </MoodCloud>
+      <RoughCard className="intro-card">
+        <h1 className="intro-title">你好呀，我是小小我</h1>
         <div className="intro-body">
           <p>我是住在这里的「另一个你」。</p>
           <p>你可以和我说开心的事、难过的事，也可以只说几个词、停下来想一想，都可以。</p>
@@ -32,14 +31,10 @@ export function IntroOverlay({ onDone }: { onDone: () => void }) {
           <p>我会尽我所能陪你把心里的事情说清楚。</p>
         </div>
         <div className="intro-actions">
-          <button type="button" className="intro-primary" onClick={onDone}>
-            开始吧
-          </button>
-          <button type="button" className="intro-skip" onClick={onDone}>
-            跳过介绍
-          </button>
+          <ActionButton actionId="intro.done" onPress={onDone} />
+          <ActionButton actionId="intro.skip" onPress={onDone} />
         </div>
-      </div>
+      </RoughCard>
     </div>
   );
 }

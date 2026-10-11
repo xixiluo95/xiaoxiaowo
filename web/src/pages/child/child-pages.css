@@ -1,0 +1,130 @@
+/* SHIY-377（司南）：儿童端 日记/日历/我的 三页专属增量样式。
+   只新增 xwdiary-/xwcal-/xwme- 前缀类，不改动共享 styles.css。 */
+
+/* ————— 心情日历：情绪色块日期格（对齐 SHIY-374 设计稿 02） ————— */
+.xxw-btn.xwcal-cell {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid rgba(91, 74, 63, 0.12) !important;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.xwcal-fill {
+  position: absolute;
+  inset: 0;
+}
+
+.xwcal-daynum {
+  position: relative;
+  z-index: 1;
+}
+
+.xwcal-cell.xwcal-colored {
+  border-color: transparent !important;
+}
+
+.xwcal-cell.xwcal-colored .xwcal-daynum {
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(91, 74, 63, 0.3);
+}
+
+/* 有内容但心情未确认：白色 + 虚线框（未确认 ≠ 已确认平静） */
+.xwcal-cell.xwcal-unconfirmed {
+  background: #ffffff !important;
+  border: 1.5px dashed rgba(91, 74, 63, 0.4) !important;
+}
+
+.xwcal-cell.xwcal-future .xwcal-daynum {
+  color: var(--xxw-muted);
+}
+
+/* 今天：手绘感虚线描边 */
+.xwcal-cell.xwcal-today {
+  outline: 2px dashed var(--xxw-emotion-joy);
+  outline-offset: -5px;
+}
+
+/* 有日记的小圆点 */
+.xwcal-diary-dot {
+  position: relative;
+  z-index: 1;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--xxw-ink);
+  opacity: 0.55;
+}
+
+.xwcal-cell.xwcal-colored .xwcal-diary-dot {
+  background: #ffffff;
+  opacity: 0.9;
+}
+
+.xwcal-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(91, 74, 63, 0.2);
+}
+
+.xwcal-legend-dot--white {
+  background: #ffffff;
+  border: 1.5px dashed rgba(91, 74, 63, 0.45);
+}
+
+/* ————— 日记页 ————— */
+.xwdiary-loading {
+  margin: 60px 30px;
+  text-align: center;
+  color: var(--xxw-muted);
+  font-size: var(--xxw-fs-small);
+}
+
+.xwdiary-unique {
+  margin: 12px 20px 2px;
+  color: var(--xxw-muted);
+  font-size: var(--xxw-fs-small);
+}
+
+.xwdiary-block-actions {
+  justify-content: flex-end;
+}
+
+.xwdiary-confirmed {
+  color: #6d8f5a;
+  font-size: 15px;
+}
+
+/* 已分享标记 + 撤回入口同行 */
+.xwdiary-shared-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 并列情绪标签间距（手绘圈避让） */
+.diary-mood-line .mood-cloud + .mood-cloud {
+  margin-left: 10px;
+}
+
+/* ————— 我的 ————— */
+.xwme-subtitle {
+  margin: 0;
+  color: var(--xxw-muted);
+  font-size: var(--xxw-fs-small);
+}
+
+.xwme-badge {
+  margin-left: 8px;
+  font-size: 11px;
+  color: #b8860b;
+  border: 1px solid rgba(184, 134, 11, 0.55);
+  border-radius: 999px;
+  padding: 1px 8px;
+  background: rgba(255, 201, 77, 0.14);
+  white-space: nowrap;
+}

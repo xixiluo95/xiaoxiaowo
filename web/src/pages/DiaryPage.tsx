@@ -1,19 +1,24 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Dialog, Toast } from 'antd-mobile';
 import { LeftOutline } from 'antd-mobile-icons';
-import {
-  confirmDiary,
-  deleteDiaryEvent,
-  getDiary,
-  shareDiary,
-  updateDiaryBlock,
-} from '../api/client';
-import type { Diary, DiaryBlock } from '../types';
+import type { DiaryBlock } from '../types';
 import { defaultEmotionManifest } from '../emotion/manifest';
 import { EmotionHighlight, RoughCard } from '../components/HandDrawn';
+import { ActionButton } from '../ui/ActionButton';
+import { useDiary } from './child/useDiary';
+import type { DiaryView } from './child/diaryApi';
+import './child/child-pages.css';
 
-function StatsBar({ diary }: { diary: Diary }) {
+const WEEK_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
+
+function formatDateLine(date: string): string {
+  const d = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return date;
+  return `${d.getMonth() + 1}月${d.getDate()}日 · 星期${WEEK_NAMES[d.getDay()]}`;
+}
+
+function StatsBar({ diary }: { diary: DiaryView }) {
   const total = diary.emotionStats.reduce((s, x) => s + x.count, 0);
   if (!total) return <p className="stats-empty">今天还没有记录心情事件</p>;
   return (
@@ -47,7 +52,7 @@ function BlockItem({
 
   return (
     <RoughCard className="diary-block" fill={block.locked ? 'rgba(255,233,168,0.25)' : undefined}>
-      {block.locked && <span className="block-badge">我改过的</span>}
+      {block.locked && <span className="block-badge">我改的</span>}
       {editing ? (
         <div className="block-edit">
           <textarea
@@ -57,34 +62,36 @@ function BlockItem({
             className="block-textarea"
           />
           <div className="block-edit-actions">
-            <button
-              type="button"
-              onClick={async () => {
-                await onSave(block.id, draft.trim() || block.text);
+            <ActionButton
+              actionId="diary.block-save"
+              onPress={async () => {
+                try {
+                  await onSave(block.id, draft.trim() || block.text);
+                  setEditing(false);
+                } catch {
+                  // 失败提示由 onSave 负责，保持编辑态
+                }
+              }}
+            />
+            <ActionButton
+              actionId="diary.block-cancel"
+              onPress={() => {
+                setDraft(block.text);
                 setEditing(false);
               }}
-            >
-              保存
-            </button>
-            <button type="button" onClick={() => { setDraft(block.text); setEditing(false); }}>
-              取消
-            </button>
+            />
           </div>
         </div>
       ) : (
-        <p className="block-text">{block.text}</p>
-      )}
-      {!editing && (
-        <div className="block-actions">
-          <button type="button" onClick={() => setEditing(true)}>
-            改一改
-          </button>
-          {block.eventId && (
-            <button type="button" className="danger" onClick={() => onDelete(block)}>
-              删除这件事
-            </button>
-          )}
-        </div>
+        <>
+          <p className={`block-text ${block.locked ? 'block-text-edited' : ''}`}>{block.text}</p>
+          <div className="block-actions xwdiary-block-actions">
+            <ActionButton actionId="diary.block-edit" onPress={() => setEditing(true)} />
+            {block.eventId && (
+              <ActionButton actionId="diary.event-delete" onPress={() => onDelete(block)} />
+            )}
+          </div>
+        </>
       )}
     </RoughCard>
   );
@@ -94,42 +101,26 @@ export default function DiaryPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const date = params.get('date') ?? undefined;
-  const [diary, setDiary] = useState<Diary | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [expired, setExpired] = useState(false);
-
-  const reload = useCallback(async () => {
-    try {
-      const d = await getDiary(date);
-      setDiary(d);
-      setExpired(!d);
-    } catch {
-      Toast.show({ content: '日记加载失败了，请稍后再试' });
-    } finally {
-      setLoaded(true);
-    }
-  }, [date]);
-
-  useEffect(() => {
-    void reload();
-  }, [reload]);
+  const { diary, loaded, failed, editBlock, removeEvent, confirm, share, revokeShare } = useDiary(date);
 
   const onSave = async (id: string, text: string) => {
     try {
-      setDiary(await updateDiaryBlock(id, text));
+      await editBlock(id, text);
       Toast.show({ content: '改好啦' });
     } catch {
       Toast.show({ content: '保存失败，请再试一次', icon: 'fail' });
+      throw new Error('save failed'); // 让 BlockItem 不退出编辑态
     }
   };
 
   const onDelete = (block: DiaryBlock) => {
     if (!block.eventId) return;
+    const eventId = block.eventId;
     Dialog.confirm({
       content: '确定把这件事从日记里删掉吗？心情统计会马上重新计算哦。',
       onConfirm: async () => {
         try {
-          setDiary(await deleteDiaryEvent(block.eventId!));
+          await removeEvent(eventId);
           Toast.show({ content: '已删除，心情统计已更新' });
         } catch {
           Toast.show({ content: '删除失败，请再试一次', icon: 'fail' });
@@ -139,9 +130,8 @@ export default function DiaryPage() {
   };
 
   const onConfirm = async () => {
-    if (!diary) return;
     try {
-      setDiary(await confirmDiary(diary.date));
+      await confirm();
       Toast.show({ content: '日记确认好啦' });
     } catch {
       Toast.show({ content: '确认失败，请再试一次', icon: 'fail' });
@@ -149,13 +139,11 @@ export default function DiaryPage() {
   };
 
   const onShare = async () => {
-    if (!diary) return;
     Dialog.confirm({
       content: '分享后，绑定的大人就能看到这篇日记的这一版。之后你再改日记，不会自动改变已经分享的内容。',
       onConfirm: async () => {
         try {
-          await shareDiary(diary.date);
-          setDiary({ ...diary, shared: true });
+          await share();
           Toast.show({ content: '已分享给大人' });
         } catch {
           Toast.show({ content: '分享失败，请再试一次', icon: 'fail' });
@@ -164,30 +152,61 @@ export default function DiaryPage() {
     });
   };
 
+  const onRevokeShare = () => {
+    Dialog.confirm({
+      content: '撤回后，大人就看不到这篇日记了，之前发出去的链接也会马上失效。确定要撤回吗？',
+      onConfirm: async () => {
+        try {
+          await revokeShare();
+          Toast.show({ content: '已撤回分享' });
+        } catch {
+          Toast.show({ content: '撤回失败，请再试一次', icon: 'fail' });
+        }
+      },
+    });
+  };
+
   return (
     <div className="page diary-page">
       <header className="sub-topbar">
-        <button type="button" className="topbar-btn" aria-label="返回" onClick={() => navigate(-1)}>
-          <LeftOutline />
-        </button>
-        <h2 className="sub-title">{diary ? `${diary.date} 的日记` : '日记'}</h2>
+        <ActionButton actionId="nav.back" onPress={() => navigate(-1)}>
+          <span className="topbar-icon" aria-hidden>
+            <LeftOutline />
+          </span>
+        </ActionButton>
+        <div className="sub-title-wrap">
+          <h2 className="sub-title">今天的日记</h2>
+          {diary && <p className="sub-title-date">{formatDateLine(diary.date)}</p>}
+        </div>
         <span className="topbar-spacer" />
       </header>
 
-      {loaded && (expired || !diary) && (
+      {!loaded && <p className="xwdiary-loading">加载中……</p>}
+
+      {loaded && failed && (
+        <div className="empty-state">
+          <p>日记加载失败了，请稍后再试。</p>
+        </div>
+      )}
+
+      {loaded && !failed && !diary && (
         <div className="empty-state">
           <p>这一天没有留下日记，或者内容已经超过了保留时间。</p>
         </div>
       )}
 
-      {diary && (
+      {loaded && diary && (
         <main className="diary-main">
+          <p className="xwdiary-unique">这是今天唯一的一篇日记哦</p>
+
           <div className="diary-mood-line">
             今天的心情颜色：{' '}
-            {diary.moodConfirmed && diary.emotionStats.length ? (
-              <EmotionHighlight color={defaultEmotionManifest[diary.emotionStats[0].emotion].color}>
-                {defaultEmotionManifest[diary.emotionStats[0].emotion].label}
-              </EmotionHighlight>
+            {diary.moodConfirmed && diary.moodColors.length ? (
+              diary.moodColors.map((e) => (
+                <EmotionHighlight key={e} color={defaultEmotionManifest[e].color}>
+                  {defaultEmotionManifest[e].label}
+                </EmotionHighlight>
+              ))
             ) : (
               <span className="mood-unconfirmed">还没确认（白色）</span>
             )}
@@ -206,17 +225,20 @@ export default function DiaryPage() {
           ))}
 
           <div className="diary-footer-actions">
-            {diary.status !== 'confirmed' && (
-              <button type="button" className="primary-btn" onClick={onConfirm}>
-                确认今天的日记
-              </button>
-            )}
-            {diary.shared ? (
-              <span className="shared-mark">已分享给大人</span>
+            {diary.status !== 'confirmed' ? (
+              <ActionButton actionId="diary.confirm" onPress={onConfirm} />
             ) : (
-              <button type="button" className="ghost-btn" onClick={onShare}>
-                分享给大人
-              </button>
+              <span className="xwdiary-confirmed">日记已确认</span>
+            )}
+          </div>
+          <div className="diary-share-row">
+            {diary.shared ? (
+              <span className="xwdiary-shared-group">
+                <span className="shared-mark">已分享给大人</span>
+                <ActionButton actionId="diary.share-revoke" onPress={onRevokeShare} />
+              </span>
+            ) : (
+              <ActionButton actionId="diary.share" onPress={onShare} />
             )}
           </div>
         </main>
