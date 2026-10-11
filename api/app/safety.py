@@ -3,6 +3,8 @@
 设定 §8/§9/§10 硬规则：
 - 疑似霸凌（medium）起才生成指南；普通冲突（low）不生成。
 - 指南事件概述用不确定措辞且简短，主体是行动建议，不展示未分享日记全文。
+  概述与日记文本解耦：risk_events 只存类别级模糊描述，不存 eventSummary 原文
+  （§8/Q02：单事件日记场景下，概述不得逐字等于未分享日记全文）。
 - 涉及家长施害或身份不清 → 默认屏蔽全部家长推送；逐接收人明确排除后才允许发送。
 - 发送权限与读取权限分开记录（Q03 主动读取是否屏蔽为待确认项）。
 - 不明确通知时说"可能/疑似"；不在未送达时宣称已通知家长。
@@ -19,8 +21,24 @@ GUIDANCE_MIN_LEVEL = "medium"  # 疑似霸凌是行动指南的起始等级
 ALLOWED_RELATIONS = ("爸爸", "妈妈", "爷爷", "奶奶", "姥姥", "姥爷")
 
 
+def _parent_event_summary(level: str, involves_parent_perpetrator: bool) -> str:
+    """家长端事件概述：类别级模糊描述，与日记文本解耦。
+
+    不复用 eventSummary 原文、不含孩子第一人称原句——风险事件独立于日记删除链
+    存续，存原文等于把未分享日记长期留在家长侧链路里（SHIY-369 打回项）。
+    """
+    if involves_parent_perpetrator:
+        return "家里让他/她感到不安的事情"
+    return {
+        "high": "涉及人身安全的危险情况",
+        "medium": "和同学之间疑似被欺负的事情",
+        "low": "和同学之间的小摩擦",
+    }.get(level, "一些让他/她不舒服的事情")
+
+
 def _guidance(level: str, summary: str) -> dict:
-    """模板化指南：内容简短可执行，事件概述用不确定措辞，不以 AI 推断下诊断。"""
+    """模板化指南：内容简短可执行，事件概述用不确定措辞，不以 AI 推断下诊断。
+    summary 必须是类别级模糊描述（见 _parent_event_summary），不得为孩子原话。"""
     short = summary[:30] if summary else "一些让他/她不舒服的事情"
     event_summary = f"孩子可能遇到了{short}，具体情况还不确定。"
     if level == "high":
@@ -77,12 +95,12 @@ def record_risk_event(
     session_id: str,
     local_date: str,
     level: str,
-    summary: str,
     involves_parent_perpetrator: bool,
     perpetrator_identity_clear: bool,
 ) -> str:
     """记录风险事件（独立于日记删除链），并为每个绑定家长初始化接收权限。
 
+    summary 列只存类别级模糊概述（_parent_event_summary），不存孩子原话。
     默认规则：涉及家长施害或身份不清 → 全部家长 send_allowed=0；
     否则默认允许发送。逐接收人排除由 exclude_recipient 处理。
     """
@@ -95,7 +113,8 @@ def record_risk_event(
             " (id, session_id, local_date, level, summary, involves_parent_perpetrator,"
             "  perpetrator_identity_clear, created_at)"
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (risk_id, session_id, local_date, level, summary,
+            (risk_id, session_id, local_date, level,
+             _parent_event_summary(level, involves_parent_perpetrator),
              1 if involves_parent_perpetrator else 0,
              1 if perpetrator_identity_clear else 0, now),
         )

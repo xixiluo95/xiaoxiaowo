@@ -1,0 +1,18 @@
+# STT（本地语音识别）可选依赖，配合 FUNASR_MODEL_DIR 使用。
+# 主依赖见 requirements.txt；本文件不包含在默认安装中，避免引入 torch 等重依赖。
+#
+# 安装（建议独立 venv，例如 api/.venv-stt）：
+#   python3 -m venv .venv-stt
+#   # torch CPU 版（避免 PyPI 默认 Linux wheel 附带 CUDA 大包）：
+#   .venv-stt/bin/pip install torch torchaudio -f https://mirrors.aliyun.com/pytorch-wheels/cpu/ -i https://pypi.tuna.tsinghua.edu.cn/simple
+#   .venv-stt/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt -r requirements-stt.txt
+#
+# 模型下载（约 936MB，落盘到仓库根 data/models/，已 gitignore）：
+#   .venv-stt/bin/python -c "from modelscope import snapshot_download; snapshot_download('iic/SenseVoiceSmall', cache_dir='../data/models')"
+#   然后把下载出的 snapshots/master 目录移为 ../data/models/SenseVoiceSmall（即 FUNASR_MODEL_DIR 指向的目录，内含 model.pt / config.yaml 等）。
+#
+# 已验证版本组合（2026-10，Python 3.12，CPU）：torch 2.14.1+cpu / torchaudio 2.11.0+cpu / funasr 1.4.16 / modelscope 1.40.2
+funasr>=1.1.14
+modelscope>=1.20
+torch>=2.0
+torchaudio>=2.0

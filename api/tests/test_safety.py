@@ -79,6 +79,30 @@ async def test_family_risk_shielding(client):
     )).json()["guidance"] == []
 
 
+async def test_guidance_summary_not_leaking_diary(client):
+    """未分享日记全文不得逐字进入家长指南事件概述（§8/Q02 单事件日记边界）。
+
+    孩子原话、日记块原文都不得出现在指南 eventSummary 里；
+    概述只能是类别级模糊描述，保持不确定措辞与简短。
+    """
+    sid = await new_session(client)
+    text = "班里有同学总是欺负我，我很害怕"
+    await chat(client, sid, text)
+
+    diary = (await client.get("/api/diary", params={"sessionId": sid})).json()
+    block_texts = [b["text"] for b in diary["blocks"] if b["text"]]
+    assert block_texts  # 当天确有日记内容
+
+    guidance = (await client.get(f"/api/parent/guidance/{sid}")).json()["guidance"]
+    assert len(guidance) == 1
+    summary = guidance[0]["guidance"]["eventSummary"]
+    assert text not in summary  # 孩子原话不得逐字出现
+    for bt in block_texts:
+        assert bt not in summary  # 日记块原文不得整体出现
+    assert "可能" in summary or "疑似" in summary  # 不确定措辞
+    assert len(summary) <= 60
+
+
 async def test_binding_requires_relation(client):
     sid = await new_session(client)
     resp = await client.post(

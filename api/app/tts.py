@@ -36,7 +36,12 @@ class MiniMaxTTS:
             "stream": False,
             "language_boost": "Chinese",
             "output_format": "hex",
-            "voice_setting": {"voice_id": voice_id, "speed": 1, "vol": 1, "pitch": 0},
+            "voice_setting": {
+                "voice_id": voice_id,
+                "speed": self.settings.minimax_tts_speed,
+                "vol": 1,
+                "pitch": 0,
+            },
             "audio_setting": {
                 "sample_rate": 32000,
                 "bitrate": 128000,

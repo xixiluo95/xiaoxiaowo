@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
-from . import deletion, diary_service, orchestrator, safety
+from . import deletion, diary_service, orchestrator, parent_service, safety
 from .stt import STTUnavailable
 from .tts import TTSFailed, TTSNotConfigured
 
@@ -207,6 +207,17 @@ async def mood(session_id: str, request: Request, date: str | None = None):
     return diary_service.heart_status(state.db, session_id, local_date)
 
 
+@router.get("/api/calendar")
+async def calendar(sessionId: str, request: Request, month: str):
+    """儿童端心情日历月视图。"""
+    _, err = session_or_error(request, sessionId)
+    if err:
+        return err
+    if len(month) != 7 or month[4] != "-":
+        return JSONResponse({"error": "invalid_month"}, status_code=400)
+    return diary_service.calendar_month(_state(request).db, sessionId, month)
+
+
 class MoodConfirm(BaseModel):
     sessionId: str
     emotion: str
@@ -259,19 +270,27 @@ async def share_diary(body: DiaryDateRef, request: Request):
 
 class RevokeRef(BaseModel):
     sessionId: str
-    shareToken: str
+    shareToken: str | None = None
+    date: str | None = None
 
 
 @router.post("/api/diary/share/revoke")
 async def revoke_share(body: RevokeRef, request: Request):
+    """撤回分享：按 shareToken 撤单个快照；按 date（缺省今天）撤当天全部有效快照。"""
     _, err = session_or_error(request, body.sessionId)
     if err:
         return err
     state = _state(request)
-    ok = diary_service.revoke_snapshot(state.db, state.db_lock, body.shareToken)
-    if not ok:
+    if body.shareToken:
+        ok = diary_service.revoke_snapshot(state.db, state.db_lock, body.shareToken)
+        if not ok:
+            return JSONResponse({"error": "snapshot_not_found"}, status_code=404)
+        return {"revoked": True}
+    local_date = body.date or diary_service.local_today()
+    count = diary_service.revoke_snapshots_for_date(state.db, state.db_lock, body.sessionId, local_date)
+    if count == 0:
         return JSONResponse({"error": "snapshot_not_found"}, status_code=404)
-    return {"revoked": True}
+    return {"revoked": True, "count": count}
 
 
 @router.get("/api/share/{token}")
@@ -287,6 +306,39 @@ async def read_shared(token: str, request: Request):
 
 
 # ---------- 家长端 ----------
+
+def _parent_guard(request, session_id: str):
+    """家长端只读取守卫：到期先清除 → 410；不存在 → 404。
+    与儿童端不同：家长读取不取消孩子的删除倒计时。"""
+    state = _state(request)
+    deletion.purge_if_expired(state.db, state.db_lock, session_id)
+    row = state.db.execute("SELECT status FROM sessions WHERE id = ?", (session_id,)).fetchone()
+    if row is None:
+        return JSONResponse({"error": "not_found"}, status_code=404)
+    if row["status"] == "deleted":
+        return JSONResponse({"error": "expired"}, status_code=410)
+    return None
+
+
+@router.get("/api/parent/day")
+async def parent_day(sessionId: str, request: Request, date: str | None = None):
+    """家长端单日聚合：心情心脏 + 最新已分享日记快照 + 最新行动指南。"""
+    err = _parent_guard(request, sessionId)
+    if err:
+        return err
+    local_date = date or diary_service.local_today()
+    return parent_service.day_content(_state(request).db, sessionId, local_date)
+
+
+@router.get("/api/parent/calendar")
+async def parent_calendar(sessionId: str, request: Request, month: str):
+    """家长端月历概览：逐日心情颜色、已分享日记与行动指南标记。"""
+    err = _parent_guard(request, sessionId)
+    if err:
+        return err
+    if len(month) != 7 or month[4] != "-":
+        return JSONResponse({"error": "invalid_month"}, status_code=400)
+    return {"days": parent_service.calendar_month(_state(request).db, sessionId, month)}
 
 @router.get("/api/parent/heart/{session_id}")
 async def parent_heart(session_id: str, request: Request, date: str | None = None):
@@ -318,7 +370,7 @@ async def parent_diaries(session_id: str, request: Request, date: str | None = N
 
 @router.get("/api/parent/guidance/{session_id}")
 async def parent_guidance(session_id: str, request: Request, date: str | None = None, bindingId: str | None = None):
-    """行动指南：疑似霸凌起才出现；家庭风险屏蔽中的事件按接收人过滤。"""
+    """已分享日记提供日常指南；风险专项指南保留接收人过滤。"""
     state = _state(request)
     deletion.purge_if_expired(state.db, state.db_lock, session_id)
     row = state.db.execute("SELECT status FROM sessions WHERE id = ?", (session_id,)).fetchone()
@@ -326,7 +378,7 @@ async def parent_guidance(session_id: str, request: Request, date: str | None = 
         return JSONResponse({"error": "not_found"}, status_code=404)
     if row["status"] == "deleted":
         return JSONResponse({"error": "expired"}, status_code=410)
-    return {"guidance": safety.list_guidance(state.db, session_id, date, bindingId)}
+    return {"guidance": parent_service.list_guidance(state.db, session_id, date, bindingId)}
 
 
 # ---------- 语音 ----------

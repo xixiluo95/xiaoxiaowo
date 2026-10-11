@@ -11,6 +11,7 @@ class Settings:
     minimax_api_key: str | None
     minimax_voice_id: str | None
     minimax_base_url: str
+    minimax_tts_speed: float
     delete_after_seconds: int
     funasr_model_dir: str | None
 
@@ -28,6 +29,8 @@ def load_settings() -> Settings:
         minimax_api_key=os.environ.get("MINIMAX_API_KEY") or None,
         minimax_voice_id=os.environ.get("MINIMAX_VOICE_ID") or None,
         minimax_base_url=os.environ.get("MINIMAX_BASE_URL", "https://api.minimax.io"),
+        # MiniMax t2a_v2 voice_setting.speed 合法区间 [0.5, 2.0]，1.0 为原始语速
+        minimax_tts_speed=max(0.5, min(2.0, float(os.environ.get("MINIMAX_TTS_SPEED", "1.25")))),
         delete_after_seconds=int(os.environ.get("XIAOXIAOWO_DELETE_AFTER_SECONDS", "300")),
         funasr_model_dir=os.environ.get("FUNASR_MODEL_DIR") or None,
     )

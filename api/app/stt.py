@@ -5,7 +5,18 @@
 """
 from __future__ import annotations
 
+import asyncio
+import re
+import threading
 from typing import Protocol
+
+# SenseVoice 等模型会在识别文本中混入元信息 token（如 <|zh|><|HAPPY|><|Speech|>），
+# 这些 token 不能进入回显、对话与日记链路，在出口统一剥离。
+_META_TOKEN_RE = re.compile(r"<\|[^|]*\|>")
+
+
+def _clean_text(text: str) -> str:
+    return _META_TOKEN_RE.sub("", text).strip()
 
 
 class STTUnavailable(RuntimeError):
@@ -23,6 +34,7 @@ class FunASRProvider:
     def __init__(self, model_dir: str):
         self.model_dir = model_dir
         self._model = None
+        self._inference_lock = threading.Lock()
 
     def _load(self):
         if self._model is None:
@@ -30,11 +42,19 @@ class FunASRProvider:
                 from funasr import AutoModel
             except ImportError as exc:
                 raise STTUnavailable("funasr_not_installed") from exc
-            self._model = AutoModel(model=self.model_dir)
+            self._model = AutoModel(model=self.model_dir, disable_update=True)
         return self._model
 
     async def transcribe(self, audio: bytes, language: str = "zh-CN") -> str:
-        import asyncio
+        return await asyncio.to_thread(self._transcribe_sync, audio)
+
+    def _transcribe_sync(self, audio: bytes) -> str:
+        # 首次导入、模型加载及推理都不能占用 HTTP 事件循环。
+        # 同一模型串行使用，防止首次并发加载及推理缓存竞争。
+        with self._inference_lock:
+            return self._infer(audio)
+
+    def _infer(self, audio: bytes) -> str:
         import tempfile
 
         model = self._load()
@@ -42,9 +62,9 @@ class FunASRProvider:
         with tempfile.NamedTemporaryFile(suffix=".webm", delete=True) as tmp:
             tmp.write(audio)
             tmp.flush()
-            result = await asyncio.to_thread(model.generate, input=tmp.name)
+            result = model.generate(input=tmp.name)
         texts = [seg.get("text", "") for seg in (result or [])]
-        text = "".join(texts).strip()
+        text = _clean_text("".join(texts))
         if not text:
             raise STTUnavailable("stt_empty_result")
         return text

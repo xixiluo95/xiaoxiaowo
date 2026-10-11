@@ -294,6 +294,41 @@ def revoke_snapshot(db: sqlite3.Connection, lock, token: str) -> bool:
         return cur.rowcount > 0
 
 
+def revoke_snapshots_for_date(db: sqlite3.Connection, lock, session_id: str, local_date: str) -> int:
+    """孩子端按天撤回：撤回该会话当天日记的全部有效分享快照（所有版本旧链接一并失效）。"""
+    with lock:
+        cur = db.execute(
+            "UPDATE shared_snapshots SET revoked_at = ?"
+            " WHERE revoked_at IS NULL AND diary_id IN"
+            " (SELECT id FROM daily_diaries WHERE subject_id = ? AND local_date = ?)",
+            (now_iso(), session_id, local_date),
+        )
+        db.commit()
+        return cur.rowcount
+
+
+def calendar_month(db: sqlite3.Connection, session_id: str, month: str) -> list[dict]:
+    """儿童端心情日历月视图：逐日日记有无、心情颜色（并列最高多色，未确认空）。"""
+    rows = db.execute(
+        "SELECT * FROM daily_diaries WHERE subject_id = ? AND local_date LIKE ? ORDER BY local_date",
+        (session_id, f"{month}-%"),
+    ).fetchall()
+    days = []
+    for row in rows:
+        heart = heart_status(db, session_id, row["local_date"])
+        blocks = db.execute(
+            "SELECT COUNT(*) AS c FROM diary_blocks WHERE diary_id = ?", (row["id"],)
+        ).fetchone()["c"]
+        confirmed = heart["state"] == "confirmed"
+        days.append({
+            "date": row["local_date"],
+            "hasDiary": blocks > 0,
+            "moodConfirmed": confirmed,
+            "colors": heart["colors"] if confirmed else [],
+        })
+    return days
+
+
 def list_shared_snapshots(db: sqlite3.Connection, session_id: str, local_date: str | None = None) -> list[dict]:
     sql = (
         "SELECT s.*, d.local_date AS diary_date FROM shared_snapshots s"
@@ -308,6 +343,7 @@ def list_shared_snapshots(db: sqlite3.Connection, session_id: str, local_date: s
     rows = db.execute(sql, params).fetchall()
     return [
         {
+            "id": r["id"],
             "date": r["diary_date"],
             "version": r["diary_version"],
             "text": r["text_snapshot"],

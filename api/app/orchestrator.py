@@ -45,12 +45,14 @@ async def process_message(app_state, session_id: str, text: str) -> dict:
         )
         diary_service.append_ai_block(db, lock, diary["id"], event_id, emo["eventSummary"])
 
-    # 风险事件独立于日记链；指南生成门槛在查询层（medium 起）
+    # 风险事件独立于日记链；指南生成门槛在查询层（medium 起）。
+    # 注意：不向 risk_events 传 eventSummary——家长侧概述由 safety 内部生成
+    # 类别级模糊描述，与日记文本解耦（§8/Q02，防止未分享日记全文泄漏）。
     risk_event_id = None
     if emo["riskLevel"] in ("low", "medium", "high"):
         family = emo.get("familyRisk") or {}
         risk_event_id = safety.record_risk_event(
-            db, lock, session_id, today, emo["riskLevel"], emo["eventSummary"],
+            db, lock, session_id, today, emo["riskLevel"],
             family.get("involvesParentPerpetrator", False),
             family.get("perpetratorIdentityClear", True),
         )

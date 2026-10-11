@@ -119,6 +119,27 @@ async def test_snapshot_immutable(client):
     assert resp.status_code == 410
 
 
+async def test_revoke_share_by_date(client):
+    """孩子端按天撤回：无需 token，当天全部版本快照的旧链接一并 410。"""
+    sid = await new_session(client)
+    await chat(client, sid, "今天很开心，因为老师表扬了我")
+    t1 = (await client.post("/api/diary/share", json={"sessionId": sid})).json()["shareToken"]
+    t2 = (await client.post("/api/diary/share", json={"sessionId": sid})).json()["shareToken"]
+
+    resp = await client.post("/api/diary/share/revoke", json={"sessionId": sid})
+    assert resp.json() == {"revoked": True, "count": 2}
+    for t in (t1, t2):
+        assert (await client.get(f"/api/share/{t}")).status_code == 410
+
+    # 家长端快照列表（儿童端 shared 标记数据源）同步清空
+    diaries = (await client.get(f"/api/parent/diaries/{sid}")).json()
+    assert diaries["snapshots"] == []
+
+    # 重复撤回 → 404
+    again = await client.post("/api/diary/share/revoke", json={"sessionId": sid})
+    assert again.status_code == 404
+
+
 async def test_chitchat_not_counted(client):
     sid = await new_session(client)
     result = await chat(client, sid, "你好呀")  # 普通闲聊 → calm 不计票
