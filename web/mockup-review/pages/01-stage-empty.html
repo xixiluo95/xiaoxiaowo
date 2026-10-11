@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(251,248,242,.25), rgba(251,248,242,0) 30%, rgba(251,248,242,.55) 88%); }
+  .topbar { position: absolute; top: 22px; left: 16px; right: 16px; display: flex; justify-content: space-between; z-index: 3; }
+  .entry { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .entry canvas { width: 30px; height: 30px; }
+  .entry span { font-size: 10px; color: var(--ink-soft); letter-spacing: 1px; }
+  .char-wrap { position: absolute; left: 0; right: 0; top: 86px; height: 440px; display: flex; justify-content: center; z-index: 2; }
+  .char-wrap img { height: 440px; filter: drop-shadow(0 10px 24px rgba(91,74,63,.18)); }
+  .glow { position: absolute; left: 50%; top: 46%; width: 250px; height: 250px; transform: translate(-50%,-50%);
+          background: radial-gradient(circle, rgba(255,248,231,.95), rgba(255,248,231,0) 70%); border-radius: 50%; z-index: 1; }
+  .subtitle { position: absolute; left: 0; right: 0; top: 472px; display: flex; justify-content: center; z-index: 3; }
+  .subtitle .r-card { padding: 9px 20px; border-radius: 999px; background: rgba(255,255,255,.92); }
+  .subtitle p { font-size: 16px; line-height: 1.7; letter-spacing: 1px; }
+  .input-bar { position: absolute; left: 18px; right: 18px; bottom: 26px; z-index: 3; }
+  .input-bar .r-card { display: flex; align-items: center; padding: 13px 16px; border-radius: 999px; }
+  .input-bar .ph { flex: 1; font-size: 15px; color: #B4A898; letter-spacing: 1px; }
+  .input-bar canvas { width: 26px; height: 26px; }
+</style>
+</head>
+<body>
+  <img class="bg" src="/assets/scenes/calm-empty-stage.jpg" alt="">
+  <div class="veil"></div>
+  <div class="topbar">
+    <div class="entry"><canvas data-icon="calendar" width="60" height="60"></canvas><span>心情日历</span></div>
+    <div class="entry"><canvas data-icon="person" width="60" height="60"></canvas><span>我的</span></div>
+  </div>
+  <div class="glow"></div>
+  <div class="char-wrap"><img src="/assets/emotions/calm/idle.png" alt="白色云朵角色"></div>
+  <div class="subtitle"><div class="r-card"><p>今天的心情是什么颜色呢？</p></div></div>
+  <div class="input-bar">
+    <div class="r-card">
+      <span class="ph">和我聊聊吧</span>
+      <canvas data-icon="mic" width="52" height="52"></canvas>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="shared.js"></script>
+  <script>renderRough();</script>
+</body>
+</html>

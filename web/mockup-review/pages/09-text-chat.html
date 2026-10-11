@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .top { display: flex; align-items: center; justify-content: center; gap: 6px; padding-top: 24px; position: relative; }
+  .top .lbl { font-size: 13px; color: var(--ink-soft); letter-spacing: 2px; }
+  .back { position: absolute; right: 16px; top: 22px; display: flex; align-items: center; gap: 3px;
+          font-size: 11px; color: var(--ink-soft); }
+  .chat { padding: 16px 14px 0; display: flex; flex-direction: column; gap: 11px; }
+  .msg { display: flex; align-items: flex-end; gap: 8px; }
+  .msg.ai .avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+                    background: radial-gradient(circle, #FFF8E7, #F2EEE6); border: 1.5px solid var(--calm-stroke);
+                    display: flex; align-items: flex-end; justify-content: center; }
+  .msg.ai .avatar img { height: 46px; margin-bottom: -12px; }
+  .bubble { max-width: 240px; padding: 9px 13px; border-radius: 14px; font-size: 15px; line-height: 1.6; }
+  .msg.kid { justify-content: flex-end; }
+  .msg.kid .bubble { background: #FFF6DE; }
+  .msg.ai .bubble { background: #fff; }
+  .bubble.r-card { border-radius: 14px; }
+  .msg.kid .bubble.r-card { background: #FFF6DE; }
+  .input-bar { position: absolute; left: 14px; right: 14px; bottom: 22px; }
+  .input-bar .r-card { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-radius: 999px; }
+  .input-bar .ph { flex: 1; font-size: 14px; color: #B4A898; letter-spacing: 1px; }
+  .input-bar canvas { width: 22px; height: 22px; }
+  .send { width: 34px; height: 34px; border-radius: 50%; background: var(--joy); display: flex; align-items: center;
+          justify-content: center; font-size: 14px; color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <span class="lbl">本次聊天</span>
+    <div class="back"><span style="font-size:14px">⌄</span>回到舞台</div>
+  </div>
+  <div class="chat">
+    <div class="msg ai">
+      <div class="avatar"><img src="/assets/emotions/calm/idle.png" alt=""></div>
+      <div class="bubble r-card">我听说今天在学校发生了一点事，想和我聊聊吗？</div>
+    </div>
+    <div class="msg kid"><div class="bubble r-card">小明今天又不跟我玩了……</div></div>
+    <div class="msg ai">
+      <div class="avatar"><img src="/assets/emotions/calm/idle.png" alt=""></div>
+      <div class="bubble r-card">我们是不是觉得有点孤单呀？被落下的感觉，确实不太好受。</div>
+    </div>
+    <div class="msg kid"><div class="bubble r-card">嗯……我有点难过，还有一点点生气。</div></div>
+    <div class="msg ai">
+      <div class="avatar"><img src="/assets/emotions/calm/idle.png" alt=""></div>
+      <div class="bubble r-card">难过和生气都来了呢。我们一起想想，明天可以怎么做，好不好？</div>
+    </div>
+  </div>
+  <div class="input-bar">
+    <div class="r-card">
+      <canvas data-icon="mic" width="44" height="44"></canvas>
+      <span class="ph">和我聊聊吧</span>
+      <div class="send">↑</div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="shared.js"></script>
+  <script>renderRough();</script>
+</body>
+</html>

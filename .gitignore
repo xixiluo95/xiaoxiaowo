@@ -4,11 +4,29 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+.venv-stt/
 
 .env
 .env.local
 
 data/*.sqlite
 data/*.sqlite-journal
+data/models/
 
 api/static/
+
+deploy/certs/
+deploy/logs/
+deploy/run.pid
+deploy/bin/
+deploy/public-preview.env
+deploy/known_hosts-preview
+
+*.log
+
+# 验收/QC 截图（可再生，仅保留脚本）
+web/verification*/*.png
+web/mockup-review/out/
+web/mockup-review/*.png
+assets/video-processed/qc/
+assets/video-processed/looptest/

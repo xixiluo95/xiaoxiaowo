@@ -1,0 +1,60 @@
+/* 「小小我」mockup 共享样式 —— 手绘皮肤规范 */
+:root {
+  --bg: #FBF8F2;
+  --card: #FFFFFF;
+  --ink: #5B4A3F;
+  --ink-soft: #8A7A6D;
+  --anger: #E8442E;
+  --sadness: #4A7FD4;
+  --fear: #8B5CF6;
+  --joy: #FFC94D;
+  --calm: #F2EEE6;
+  --calm-stroke: #D8D2C4;
+  --joy-glow: #FFE9A8;
+  --sad-glow: #9CC4F5;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 360px; height: 640px;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+body { position: relative; }
+
+/* 手绘卡片：本体白底无 CSS 边框，RoughJS 叠加描边 */
+.r-card {
+  position: relative;
+  background: var(--card);
+  border-radius: 14px;
+}
+.r-card > canvas.rough-layer {
+  position: absolute; inset: -4px;
+  width: calc(100% + 8px); height: calc(100% + 8px);
+  pointer-events: none;
+}
+
+.page-title {
+  font-size: 20px; font-weight: 700;
+  text-align: center;
+  padding-top: 26px;
+  letter-spacing: 1px;
+}
+.page-sub {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+/* 通用小按钮/胶囊 */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--calm-stroke);
+  border-radius: 999px;
+  padding: 3px 10px;
+}

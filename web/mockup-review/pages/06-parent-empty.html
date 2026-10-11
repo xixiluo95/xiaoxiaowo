@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .title { padding-top: 30px; text-align: center; font-size: 17px; font-weight: 700; letter-spacing: 2px; }
+  .center { position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .center canvas { width: 260px; height: 260px; }
+  .hint { margin-top: 18px; font-size: 13px; color: var(--ink-soft); letter-spacing: 1px; }
+</style>
+</head>
+<body>
+  <div class="title">小小我 · 家长端</div>
+  <div class="center">
+    <canvas data-heart="#FFFFFF" data-stroke="#D8D2C4" data-seed="77" data-strokewidth="3" width="520" height="520"></canvas>
+    <div class="hint">孩子今天的心情还没有确认哦</div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="shared.js"></script>
+  <script>renderRough();</script>
+</body>
+</html>

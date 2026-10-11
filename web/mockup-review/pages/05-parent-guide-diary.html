@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .heart-zone { display: flex; align-items: center; gap: 10px; padding: 24px 18px 0; }
+  .heart-zone canvas { width: 32px; height: 32px; flex-shrink: 0; }
+  .heart-zone .hz-txt b { font-size: 13px; display: block; }
+  .heart-zone .hz-txt small { font-size: 11px; color: var(--ink-soft); }
+  .wrap { padding: 0 16px; }
+  .diary-card { margin-top: 14px; padding: 14px; }
+  .card-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .card-title .pill { margin-left: auto; }
+  .diary-card p { font-size: 13.5px; line-height: 1.75; color: #6E5F54; }
+  .diary-meta { margin-top: 8px; font-size: 11px; color: var(--ink-soft); }
+  .guide-card { margin-top: 14px; padding: 14px; }
+  .guide-lead { font-size: 13px; line-height: 1.7; color: #6E5F54; background: var(--bg);
+                border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; }
+  .sec { margin-bottom: 9px; }
+  .sec h3 { font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .sec h3::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: var(--joy); }
+  .sec ul { list-style: none; }
+  .sec li { font-size: 12.5px; line-height: 1.65; color: #6E5F54; padding-left: 14px; position: relative; }
+  .sec li::before { content: "·"; position: absolute; left: 4px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+  <div class="heart-zone">
+    <canvas data-heart="#FFC94D" data-stroke="#5B4A3F" data-seed="31" data-strokewidth="2" width="64" height="64"></canvas>
+    <div class="hz-txt"><b>10月11日 · 孩子的心情</b><small>以开心为主，有一点点难过</small></div>
+  </div>
+  <div class="wrap">
+    <div class="r-card diary-card">
+      <div class="card-title">孩子分享的日记<span class="pill">孩子已确认</span></div>
+      <p>「今天在操场上，小明抢走了我的跳绳，我很生气。后来老师让我们一起玩接力赛，我们一队还赢了，我又开心起来了。放学的时候下了一点小雨，我有点想妈妈。」</p>
+      <div class="diary-meta">日记全文由孩子确认后分享 · 仅展示摘要</div>
+    </div>
+    <div class="r-card guide-card">
+      <div class="card-title">给您的行动指南</div>
+      <div class="guide-lead">孩子今天可能在学校和同学发生了一点不愉快。</div>
+      <div class="sec">
+        <h3>建议行动</h3>
+        <ul>
+          <li>今晚睡前留 10 分钟，陪孩子在轻松的氛围里聊聊今天</li>
+          <li>先听孩子讲完，不急着给建议</li>
+        </ul>
+      </div>
+      <div class="sec">
+        <h3>推荐开场白</h3>
+        <ul>
+          <li>「今天操场上是不是发生了什么呀？我有点好奇。」</li>
+        </ul>
+      </div>
+      <div class="sec">
+        <h3>暂时避免说</h3>
+        <ul>
+          <li>「这点小事有什么好生气的」</li>
+          <li>「你是不是先惹他了」</li>
+        </ul>
+      </div>
+      <div class="sec">
+        <h3>后续观察</h3>
+        <ul>
+          <li>留意明天放学后提到这位同学时的情绪变化</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="shared.js"></script>
+  <script>renderRough();</script>
+</body>
+</html>

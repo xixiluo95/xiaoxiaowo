@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .wrap { padding: 0 16px; }
+  .cal-card { margin-top: 14px; padding: 16px 14px 12px; }
+  .month { text-align: center; font-size: 14px; font-weight: 600; margin-bottom: 12px; letter-spacing: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 4px; }
+  .wd { text-align: center; font-size: 11px; color: var(--ink-soft); padding-bottom: 4px; }
+  .cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          border-radius: 12px; font-size: 13px; position: relative; }
+  .cell .d { line-height: 1; }
+  .cell.white { border: 1.5px solid var(--calm-stroke); background: #fff; color: var(--ink-soft); }
+  .cell.emo { color: #fff; font-weight: 600; text-shadow: 0 1px 2px rgba(91,74,63,.35); }
+  .cell.dual { background: linear-gradient(135deg, var(--joy) 0%, var(--joy) 45%, var(--sadness) 55%, var(--sadness) 100%); }
+  .cell.today { border: 1.5px dashed var(--ink); background: #fff; color: var(--ink); font-weight: 700; }
+  .cell.today::after { content: "今天"; position: absolute; bottom: 3px; font-size: 8px; font-weight: 400; color: var(--ink-soft); }
+  .cell.future { color: #C9C0B2; }
+  .legend { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: center; }
+  .legend .item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-soft); }
+  .dot { width: 12px; height: 12px; border-radius: 5px; }
+  .dot.white { border: 1.5px solid var(--calm-stroke); background: #fff; }
+</style>
+</head>
+<body>
+  <div class="page-title">心情日历</div>
+  <div class="page-sub">看看这个月的心情颜色</div>
+  <div class="wrap">
+    <div class="r-card cal-card">
+      <div class="month">2026 年 10 月</div>
+      <div class="grid" id="grid"></div>
+      <div class="legend">
+        <div class="item"><span class="dot" style="background:var(--anger)"></span>生气</div>
+        <div class="item"><span class="dot" style="background:var(--sadness)"></span>难过</div>
+        <div class="item"><span class="dot" style="background:var(--fear)"></span>害怕</div>
+        <div class="item"><span class="dot" style="background:var(--joy)"></span>开心</div>
+        <div class="item"><span class="dot white"></span>待确认</div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    const EMOS = { anger: 'var(--anger)', sadness: 'var(--sadness)', fear: 'var(--fear)', joy: 'var(--joy)' };
+    const MAP = { 1:'joy', 2:'joy', 3:'sadness', 4:'fear', 5:'joy', 6:'anger', 7:'dual', 8:'joy', 9:'sadness', 10:'anger' };
+    const TODAY = 11;
+    const grid = document.getElementById('grid');
+    ['一','二','三','四','五','六','日'].forEach(w => {
+      const el = document.createElement('div'); el.className = 'wd'; el.textContent = w; grid.appendChild(el);
+    });
+    // 2026-10-01 是周四（周一为首列 → 空 3 格）
+    const offset = (new Date(2026, 9, 1).getDay() + 6) % 7;
+    for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
+    for (let d = 1; d <= 31; d++) {
+      const c = document.createElement('div');
+      c.className = 'cell';
+      if (d === TODAY) c.classList.add('today');
+      else if (MAP[d] === 'dual') c.classList.add('emo', 'dual');
+      else if (MAP[d]) { c.classList.add('emo'); c.style.background = EMOS[MAP[d]]; }
+      else { c.classList.add('white'); if (d > TODAY) c.classList.add('future'); }
+      c.innerHTML = `<span class="d">${d}</span>`;
+      grid.appendChild(c);
+    }
+    renderRough();
+  </script>
+</body>
+</html>

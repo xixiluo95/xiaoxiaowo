@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .wrap { padding: 0 16px; }
+  .entry-card { margin-top: 14px; padding: 14px 14px 12px; position: relative; }
+  .entry-head { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+  .e-dot { width: 12px; height: 12px; border-radius: 5px; }
+  .e-tag { font-size: 12px; font-weight: 600; }
+  .e-time { font-size: 11px; color: var(--ink-soft); margin-left: auto; }
+  .entry-card p { font-size: 15px; line-height: 1.7; }
+  .edit-btn { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--ink-soft);
+              border: 1.5px solid var(--calm-stroke); border-radius: 999px; padding: 2px 10px; background: #fff; }
+  .stamp { position: absolute; top: -10px; right: 14px; transform: rotate(6deg);
+           font-size: 11px; color: var(--anger); border: 1.8px solid var(--anger);
+           border-radius: 8px; padding: 2px 8px; background: rgba(255,255,255,.94); font-weight: 600;
+           letter-spacing: 1px; }
+  .confirm { position: absolute; left: 24px; right: 24px; bottom: 26px; }
+  .confirm .inner { position: relative; background: var(--joy); border-radius: 18px; padding: 14px;
+                    text-align: center; font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--ink); }
+  .confirm canvas { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); pointer-events: none; }
+</style>
+</head>
+<body>
+  <div class="page-title">10月11日 · 今天的日记</div>
+  <div class="page-sub">这是今天唯一的一篇日记哦</div>
+  <div class="wrap">
+    <div class="r-card entry-card">
+      <div class="entry-head">
+        <span class="e-dot" style="background:var(--anger)"></span><span class="e-tag">生气</span>
+        <span class="e-time">上午 · 操场</span>
+      </div>
+      <p>今天在操场上，小明抢走了我的跳绳。我很生气，脸都变得热热的。</p>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="r-card entry-card">
+      <div class="stamp">我改过的</div>
+      <div class="entry-head">
+        <span class="e-dot" style="background:var(--joy)"></span><span class="e-tag">开心</span>
+        <span class="e-time">后来 · 体育课</span>
+      </div>
+      <p>后来老师让我们一起玩接力赛，我和小明分到了一队，我们还赢了！我又开心起来了。</p>
+      <button class="edit-btn">编辑</button>
+    </div>
+    <div class="r-card entry-card">
+      <div class="entry-head">
+        <span class="e-dot" style="background:var(--sadness)"></span><span class="e-tag">难过</span>
+        <span class="e-time">放学的时候</span>
+      </div>
+      <p>放学的时候下了一点小雨，我有点想妈妈，心里酸酸的。</p>
+      <button class="edit-btn">编辑</button>
+    </div>
+  </div>
+  <div class="confirm">
+    <div class="inner">
+      确认日记
+      <canvas data-btn width="640" height="116"></canvas>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="shared.js"></script>
+  <script>renderRough();</script>
+</body>
+</html>

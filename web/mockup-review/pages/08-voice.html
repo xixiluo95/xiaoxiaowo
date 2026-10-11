@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(154,196,245,.30), rgba(251,248,242,.12) 45%, rgba(251,248,242,.75) 92%); }
+  .hint { position: absolute; top: 26px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--ink-soft); letter-spacing: 1px; z-index: 3; }
+  .convo { position: absolute; top: 52px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 3; }
+  .echo { max-width: 250px; background: rgba(91,74,63,.08); color: #7A6B5F; font-size: 12.5px;
+          border-radius: 14px; padding: 7px 14px; }
+  .ai-say .r-card { padding: 10px 18px; border-radius: 16px; background: rgba(255,255,255,.95); }
+  .ai-say p { font-size: 16px; line-height: 1.7; }
+  /* sadness 素材可见区域占图高 39.8%（头顶 36.1% / 脚底 75.9%），图高 643 → 角色可见 ≈256css = 屏高 40% */
+  .char-wrap { position: absolute; left: 0; right: 0; top: 40px; height: 643px; display: flex; justify-content: center; z-index: 2; }
+  .char-wrap img { height: 643px; filter: drop-shadow(0 10px 24px rgba(74,127,212,.25)); }
+  .bottom { position: absolute; left: 0; right: 0; bottom: 26px; display: flex; align-items: center; justify-content: center; gap: 14px; z-index: 3; }
+  .rec-zone { position: relative; }
+  .ripple { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+            border: 2px solid rgba(232,68,46,.45); border-radius: 999px; }
+  .r1 { width: 236px; height: 76px; } .r2 { width: 262px; height: 96px; border-color: rgba(232,68,46,.22); }
+  .rec-btn { position: relative; width: 220px; height: 60px; border-radius: 999px; background: #fff;
+             display: flex; align-items: center; justify-content: center; gap: 9px;
+             box-shadow: 0 6px 18px rgba(232,68,46,.18); }
+  .rec-btn canvas.rb { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); pointer-events: none; }
+  .rec-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--anger); }
+  .rec-btn .t { font-size: 17px; font-weight: 700; letter-spacing: 2px; }
+  .rec-btn .timer { font-size: 12px; color: var(--anger); font-weight: 600; }
+  .kb { width: 44px; height: 44px; border-radius: 50%; background: #fff; border: 1.5px solid var(--calm-stroke);
+        display: flex; align-items: center; justify-content: center; }
+  .kb canvas { width: 24px; height: 24px; }
+</style>
+</head>
+<body>
+  <img class="bg" src="/assets/scenes/calm-empty-stage.jpg" alt="">
+  <div class="veil"></div>
+  <div class="hint">按住说话可以打断我哦</div>
+  <div class="convo">
+    <div class="echo">「……他今天又不跟我玩了」</div>
+    <div class="ai-say"><div class="r-card"><p>我在这儿，慢慢说，我在听。</p></div></div>
+  </div>
+  <div class="char-wrap"><img src="/assets/emotions/sadness/idle.png" alt="蓝色云朵角色"></div>
+  <div class="bottom">
+    <div class="rec-zone">
+      <div class="ripple r1"></div>
+      <div class="ripple r2"></div>
+      <div class="rec-btn">
+        <canvas class="rb" data-btn data-stroke="#E8442E" width="456" height="136"></canvas>
+        <span class="rec-dot"></span>
+        <span class="t">按住 说话</span>
+        <span class="timer">00:03</span>
+      </div>
+    </div>
+    <div class="kb"><canvas data-icon="keyboard" width="48" height="48"></canvas></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="shared.js"></script>
+  <script>renderRough();</script>
+</body>
+</html>
