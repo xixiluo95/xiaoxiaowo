@@ -1,0 +1,84 @@
+{
+  "generated_by": "鲁班 (SHIY-382)",
+  "generated_at": "2026-10-11",
+  "tool": "ffmpeg 6.1.1 (chromakey + despill + overlay)",
+  "source_dir": "/home/xixil/下载/黑客松/ui/背景人物动画视频",
+  "source_hashes_file": "source-hashes.md5",
+  "spec": {
+    "resolution": "720x1280",
+    "fps": 30,
+    "codec": "h264 (libx264, CRF 23, preset slow)",
+    "pix_fmt": "yuv420p",
+    "audio": "none (装饰视频去音轨，避免干扰 TTS/录音)",
+    "container": "mp4, +faststart",
+    "duration": "~4s (源素材长度)"
+  },
+  "items": {
+    "calm": {
+      "loop_video": "calm-loop.mp4",
+      "poster": "calm-poster.jpg",
+      "video_bytes": 1166154,
+      "poster_bytes": 245867,
+      "duration": 3.967,
+      "frames": 119,
+      "source_bg": "calm_background.mp4",
+      "source_char": "calm_character.mp4 (下划线版，30fps，发光眼睛、比例与其余情绪一致)",
+      "chromakey": { "color": "0x00FF00", "similarity": 0.22, "blend": 0.06, "despill": "green" },
+      "video_md5": "919d4f1860570954e0037345e752bb30"
+    },
+    "joy": {
+      "loop_video": "joy-loop.mp4",
+      "poster": "joy-poster.jpg",
+      "video_bytes": 1486874,
+      "poster_bytes": 188025,
+      "duration": 3.967,
+      "frames": 119,
+      "source_bg": "joy-background.mp4",
+      "source_char": "joy-character.mp4",
+      "chromakey": { "color": "0x00FF00", "similarity": 0.30, "blend": 0.06, "despill": "green", "note": "similarity 提高到 0.30 是为了抠掉角色脚下的绿色地面阴影；金披风内衬与皮肤色相距离安全，已抽帧确认未抠穿" },
+      "video_md5": "08a9a678bb45468b67eac6c13330713d"
+    },
+    "anger": {
+      "loop_video": "anger-loop.mp4",
+      "poster": "anger-poster.jpg",
+      "video_bytes": 1529318,
+      "poster_bytes": 199132,
+      "duration": 4.0,
+      "frames": 120,
+      "source_bg": "anger-background.mp4",
+      "source_char": "anger-character.mp4",
+      "chromakey": { "color": "0x00FF00", "similarity": 0.25, "blend": 0.08, "despill": "green", "note": "白发丝/火光边缘已抽帧检查，0.25+0.08 下卷毛缝隙基本无绿边" },
+      "video_md5": "50ee460755a0eb03fea37fedbfdd038f"
+    },
+    "sadness": {
+      "loop_video": "sadness-loop.mp4",
+      "poster": "sadness-poster.jpg",
+      "video_bytes": 1652527,
+      "poster_bytes": 202698,
+      "duration": 3.967,
+      "frames": 119,
+      "source_bg": "sad-background.mp4 (源文件名 sad → 业务键 sadness)",
+      "source_char": "sad-character.mp4",
+      "chromakey": { "color": "0x00FF00", "similarity": 0.22, "blend": 0.06, "despill": "green" },
+      "video_md5": "4ada672d5f33a888424300ee083a7039"
+    },
+    "fear": {
+      "loop_video": null,
+      "poster": null,
+      "note": "本批无 fear 视频素材，继续用现有静态紫色角色兜底，不等补素材"
+    }
+  },
+  "quality_check": {
+    "keying": "4 组 × 3+ 时间点抽帧目视检查：角色完整、无抠穿、无明显绿边；calm 半透明披风保留半透明质感",
+    "loop_30s": "8 倍循环（32s）blackdetect 无黑帧",
+    "loop_seam": "源素材首尾姿态不完全闭合（首末帧 PSNR 13~20dB），循环点有轻微姿态跳变；建议前端在 loop 接缝处做 200~300ms 透明度交叉淡化，或用双 video 元素轮换",
+    "first_screen": "4 组视频合计 ~5.8MB，单组 1.1~1.7MB，poster 各 ~200KB；建议首屏只加载 poster + 当前情绪视频，其余空闲预取"
+  },
+  "reproduce": "cd /home/xixil/xiaoxiaowo/assets/video-processed && ./process_videos.sh",
+  "notes": [
+    "源文件只读未动，哈希见 source-hashes.md5；背景与角色原始分层即源文件本身",
+    "calm-character.mp4（连字符，60fps，较大比例/自然眼睛版）保留在源目录未混用",
+    "未交付透明角色分层版本：H.264 MP4 不支持 Alpha；若舞台确需分层叠加，需另出 WebM/VP9+Alpha 并先验证目标浏览器兼容性",
+    "anger 角色源素材脚部悬空（无地面接触），合成后悬浮于场景岩石上，属源素材内容"
+  ]
+}
