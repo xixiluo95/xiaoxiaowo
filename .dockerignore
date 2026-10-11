@@ -1,0 +1,16 @@
+.git
+.github
+node_modules
+web/node_modules
+web/dist
+**/__pycache__
+**/.pytest_cache
+.venv
+api/.venv
+data/*.sqlite
+.env
+.env.local
+docs
+reports
+*.md
+!README.md

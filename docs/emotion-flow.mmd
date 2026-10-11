@@ -1,0 +1,30 @@
+flowchart TD
+    A["用户输入：文字 / STT"] --> B["Safety Pre-check"]
+
+    B -->|明显危险| R["生成 risk_event<br/>进入安全回复规则"]
+    B -->|无明显危险| C["DeepSeek Emotion Decision"]
+
+    C --> D{"有明确主情绪？"}
+
+    D -->|否| E{"只是普通聊天？"}
+    E -->|是| W["calm / 白色小人"]
+    E -->|否，情绪模糊| X["保持当前角色<br/>继续探索而不强判"]
+
+    D -->|是| F{"主情绪"}
+    F -->|喜悦| J["joy"]
+    F -->|愤怒| G["anger"]
+    F -->|忧伤| S["sadness"]
+    F -->|恐惧| H["fear"]
+
+    W --> CHAT["自然回复"]
+    X --> CHAT
+    J --> CHAT
+    G --> CHAT
+    S --> CHAT
+    H --> CHAT
+
+    CHAT --> EV{"值得留下事件？"}
+    EV -->|普通闲聊也可记录一句| DE["追加 diary event"]
+    EV -->|无内容| END["结束 turn"]
+
+    DE --> LIVE["实时更新今天唯一日记"]

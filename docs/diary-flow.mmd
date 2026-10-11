@@ -1,0 +1,32 @@
+flowchart TD
+    C["每次对话完成"] --> E["提取 event_summary + emotion"]
+
+    E --> U["读取 local_date 今日 daily_diary"]
+
+    U --> L{"已有用户锁定 block？"}
+
+    L -->|有| P["保持所有 user/locked block 不变"]
+    L -->|无| P2["更新 AI block"]
+
+    P --> A["只追加 / 更新未锁定 AI 内容"]
+    P2 --> A
+
+    A --> S["保存同一篇今日实时日记"]
+
+    S --> M{"local time == 00:00?"}
+
+    M -->|否| WAIT["继续当天记录"]
+    M -->|是| F["幂等 finalization job"]
+
+    F --> G["整理昨天所有未锁定 AI block"]
+    G --> K["保留用户修改文本"]
+    K --> D["状态 final_draft"]
+
+    D --> N["第二天首页轻量卡片提醒"]
+
+    N --> Q{"用户决定"}
+    Q -->|保存| CONFIRM["confirmed"]
+    Q -->|修改| EDIT["修改 block 并锁定"]
+    Q -->|稍后| TTL["最多保留 7 天草稿"]
+
+    EDIT --> CONFIRM

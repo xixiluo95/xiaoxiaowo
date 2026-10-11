@@ -1,0 +1,32 @@
+flowchart LR
+    U["H5 / 成年评委手机"] -->|"文字 / 麦克风"| FE["React H5 情绪剧场"]
+
+    FE -->|"REST"| API["FastAPI API"]
+    FE <-->|"WebSocket"| RT["实时会话通道"]
+
+    RT --> STTA["STT Provider Adapter"]
+    STTA --> F["FunASR"]
+    STTA -.备用.-> S["sherpa-onnx / whisper.cpp"]
+
+    API --> ORCH["对话编排器"]
+    RT --> ORCH
+
+    ORCH --> SAFE["Safety Hook"]
+    ORCH --> DS["DeepSeek<br/>对话 + 情绪结构化判断"]
+
+    DS --> STATE["Emotion State<br/>white / joy / anger / sadness / fear"]
+    STATE --> MANIFEST["视频素材 Manifest"]
+    MANIFEST --> FE
+
+    DS --> TTSA["TTS Adapter"]
+    TTSA --> MM["MiniMax Speech 2.8"]
+    MM -->|"音频流"| RT
+
+    ORCH --> EVENTS["emotion_events"]
+    EVENTS --> DIARY["Daily Diary Worker"]
+    DIARY --> DB[("SQLite / PostgreSQL")]
+
+    DB --> SNAP["immutable shared_snapshot"]
+    SNAP --> P["家长快照页"]
+
+    SAFE --> RISK["risk_events<br/>与日记删除逻辑隔离"]

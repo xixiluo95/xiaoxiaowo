@@ -1,0 +1,14 @@
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+.env
+.env.local
+
+data/*.sqlite
+data/*.sqlite-journal
+
+api/static/
