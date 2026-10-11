@@ -19,7 +19,8 @@ def load_settings() -> Settings:
     return Settings(
         db_path=os.environ.get(
             "XIAOXIAOWO_DB_PATH",
-            os.path.join(os.path.dirname(__file__), "..", "data", "xiaoxiaowo.sqlite"),
+            # 骨架约定：数据文件在仓库根 data/（已被 .gitignore 排除）
+            os.path.join(os.path.dirname(__file__), "..", "..", "data", "xiaoxiaowo.sqlite"),
         ),
         deepseek_api_key=os.environ.get("DEEPSEEK_API_KEY") or None,
         deepseek_base_url=os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
