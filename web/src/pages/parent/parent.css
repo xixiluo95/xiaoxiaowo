@@ -1,0 +1,401 @@
+/* 家长端 scoped 样式：全部 ph- 前缀，颜色/字号/圆角走 --ph-* 变量（theme tokens）。
+   变量值由页面根节点的 inline style 注入（resolveTheme()），方便整页换肤。 */
+
+.ph-page {
+  background: var(--ph-bg);
+  color: var(--ph-ink);
+}
+
+/* ————— 顶栏 ————— */
+.ph-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) var(--ph-page-padding) 8px;
+}
+
+.ph-topbar-title {
+  font-size: var(--ph-font-title);
+  font-weight: 600;
+  margin: 0;
+  color: var(--ph-ink);
+}
+
+.ph-topbar-spacer {
+  width: 38px;
+}
+
+/* ————— 按钮（唯一入口 ParentActionButton） ————— */
+.ph-btn {
+  border: none;
+  background: none;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--ph-ink);
+}
+
+.ph-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ph-btn--icon-box {
+  width: 38px;
+  height: 38px;
+  font-size: 19px;
+  border: 1.5px solid var(--ph-line);
+  background: transparent;
+  color: var(--ph-ink);
+}
+
+/* 覆盖配置给 icon-box 加了文案时：宽度自适应，图标+文字横排 */
+.ph-btn--icon-box:has(.ph-btn-label) {
+  width: auto;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.ph-btn--icon-box.ph-btn--sm {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+}
+
+.ph-btn--icon-box.ph-btn--lg {
+  width: 46px;
+  height: 46px;
+  font-size: 22px;
+}
+
+.ph-btn--square {
+  border-radius: 8px;
+}
+
+.ph-btn--rounded {
+  border-radius: 12px;
+}
+
+.ph-btn--pill {
+  border-radius: 999px;
+}
+
+.ph-btn--circle {
+  border-radius: 50%;
+}
+
+.ph-btn--text {
+  color: var(--ph-muted);
+  font-size: var(--ph-font-body);
+}
+
+.ph-btn--text.ph-btn--sm {
+  font-size: var(--ph-font-small);
+}
+
+.ph-btn--text.ph-btn--lg {
+  font-size: 17px;
+}
+
+.ph-btn--link {
+  color: var(--ph-faint);
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+/* ————— 首页三态 ————— */
+.ph-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 var(--ph-page-padding);
+}
+
+.ph-heart-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px 14px;
+}
+
+.ph-heart-row-text {
+  font-size: 14px;
+  color: var(--ph-muted);
+}
+
+.ph-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-card-gap);
+  padding-bottom: 26px;
+}
+
+.ph-stack--centered {
+  flex: 1;
+  justify-content: center;
+}
+
+.ph-heart-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-bottom: 48px;
+}
+
+.ph-heart-line {
+  font-size: 17px;
+  color: var(--ph-ink);
+  margin: 0;
+}
+
+/* 情绪词高亮（荧光笔式）；未确认为弱色 */
+.ph-heart-word {
+  font-weight: 600;
+  color: var(--ph-ink);
+  background: linear-gradient(transparent 55%, rgba(255, 201, 77, 0.5) 0);
+  padding: 0 2px;
+}
+
+.ph-heart-word.is-unconfirmed {
+  color: var(--ph-muted);
+  background: none;
+}
+
+.ph-diary-hint {
+  margin-top: 4px;
+  text-align: center;
+  line-height: 1.7;
+  max-width: 220px;
+}
+
+.ph-footer {
+  padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + 14px);
+  display: grid;
+  place-items: center;
+}
+
+.ph-empty {
+  margin: 60px 30px;
+  text-align: center;
+  color: var(--ph-muted);
+  font-size: var(--ph-font-body);
+  line-height: 1.8;
+}
+
+/* ————— 卡片 ————— */
+.ph-card {
+  background: var(--ph-card-bg);
+  border-radius: var(--ph-card-radius);
+  box-shadow: var(--ph-card-shadow);
+  padding: 18px;
+}
+
+.ph-card-title {
+  font-size: var(--ph-font-card-title);
+  font-weight: 600;
+  margin: 0;
+  color: var(--ph-ink);
+}
+
+.ph-badge {
+  background: var(--ph-badge-bg);
+  color: var(--ph-badge-ink);
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ph-risk--none {
+  color: var(--ph-muted);
+  background: var(--ph-badge-bg);
+}
+
+.ph-risk--medium {
+  color: var(--ph-risk-medium);
+  background: #faf3e7;
+}
+
+.ph-risk--high {
+  color: var(--ph-risk-high);
+  background: #f9ece8;
+}
+
+/* 日记快照卡 */
+.ph-diary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ph-diary-para {
+  font-size: var(--ph-font-body);
+  line-height: 1.9;
+  color: var(--ph-ink);
+  margin: 0 0 10px;
+}
+
+.ph-diary-para:last-child {
+  margin-bottom: 0;
+}
+
+.ph-diary-note {
+  text-align: right;
+  color: var(--ph-faint);
+  font-size: 11.5px;
+  margin: 12px 0 0;
+}
+
+/* 行动指南卡 */
+.ph-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ph-guide-brief {
+  color: var(--ph-muted);
+  font-size: 13.5px;
+  line-height: 1.7;
+  border-left: 3px solid var(--ph-divider);
+  padding-left: 10px;
+  margin: 12px 0 2px;
+}
+
+.ph-guide-h4 {
+  font-size: 14px;
+  color: var(--ph-ink);
+  margin: 14px 0 6px;
+}
+
+.ph-guide-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #5a6373;
+}
+
+.ph-guide-watch {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #5a6373;
+}
+
+/* ————— 日历页 ————— */
+.ph-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 2px 0 12px;
+}
+
+.ph-cal-month {
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 108px;
+  text-align: center;
+  color: var(--ph-ink);
+}
+
+.ph-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 7px;
+  padding: 0 var(--ph-page-padding);
+}
+
+.ph-cal-week {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ph-faint);
+  padding: 4px 0;
+}
+
+.ph-btn.ph-cal-cell {
+  background: var(--ph-cell-bg);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  aspect-ratio: 0.86;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--ph-ink);
+}
+
+.ph-cal-cell.is-selected {
+  border-color: var(--ph-accent);
+}
+
+.ph-cal-cell.is-today .ph-cal-day-num {
+  font-weight: 700;
+  color: var(--ph-accent);
+}
+
+.ph-cell-heart {
+  display: block;
+}
+
+/* 选中日详情 */
+.ph-day-main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-card-gap);
+  padding: 6px var(--ph-page-padding) 30px;
+}
+
+.ph-day-date {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 2px 0 0;
+  color: var(--ph-ink);
+}
+
+.ph-day-mood {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--ph-font-body);
+  color: var(--ph-ink);
+}
+
+.ph-day-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+.ph-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ph-muted);
+  background: var(--ph-cell-bg);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.ph-stat-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
