@@ -9,11 +9,13 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 
 from . import db as dbmod
 from . import deletion
 from .config import Settings, load_settings
 from .deepseek import DeepSeekClient
+from .http_cache import StaticCacheMiddleware
 from .routes import router
 from .stt import build_stt_provider
 from .tts import MiniMaxTTS
@@ -53,6 +55,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.stt = build_stt_provider(settings)
     app.state.histories = {}
 
+    # 顺序即洋葱层次：最后 add 的最外层，因此 CORS 仍在最外面，其次补缓存头，再次 gzip
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.add_middleware(StaticCacheMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

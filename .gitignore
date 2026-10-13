@@ -22,6 +22,10 @@ deploy/bin/
 deploy/public-preview.env
 deploy/known_hosts-preview
 
+# 手机公网入口运行产物（链接含邀请 token，由 deploy/public_url.sh 生成，不入库）
+data/public-preview-url.txt
+data/public-preview-qr.png
+
 *.log
 
 # 验收/QC 截图（可再生，仅保留脚本）
